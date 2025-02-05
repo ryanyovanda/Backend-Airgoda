@@ -5,4 +5,6 @@ import com.ryanyovanda.airgodabackend.infrastructure.auth.dto.TokenPairResponseD
 
 public interface LoginUsecase {
   TokenPairResponseDTO authenticateUser(LoginRequestDTO req);
+  TokenPairResponseDTO authenticateWithGoogle(String googleToken);
+
 }

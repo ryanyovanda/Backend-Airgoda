@@ -32,7 +32,6 @@ public class User {
   private String password;
 
   @Size(max = 50)
-  @NotNull
   @Column(name = "pin", nullable = false, length = 50)
   private String pin;
 
@@ -40,7 +39,6 @@ public class User {
   @Column(name = "profile_picture_url", length = 100)
   private String profilePictureUrl;
 
-  @NotNull
   @ColumnDefault("false")
   @Column(name = "is_onboarding_finished", nullable = false)
   private Boolean isOnboardingFinished = false;
