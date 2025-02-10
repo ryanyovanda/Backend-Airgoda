@@ -1,77 +1,50 @@
 package com.ryanyovanda.airgodabackend.infrastructure.property.controller;
 
-import com.ryanyovanda.airgodabackend.entity.RoomVariant;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreateRoomVariantDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.UpdateRoomVariantDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.GetRoomVariantDTO;
 import com.ryanyovanda.airgodabackend.usecase.property.RoomVariantUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/room-variants")
 public class RoomVariantController {
 
-    private final RoomVariantUsecase roomVariantUseCase;
-
     @Autowired
-    public RoomVariantController(RoomVariantUsecase roomVariantUseCase) {
-        this.roomVariantUseCase = roomVariantUseCase;
-    }
+    private RoomVariantUsecase roomVariantUsecase;
 
-    /**
-     * Create Room Variant
-     */
     @PostMapping
-    public ResponseEntity<RoomVariant> createRoomVariant(@RequestBody RoomVariant roomVariant) {
-        RoomVariant savedRoomVariant = roomVariantUseCase.createRoomVariant(roomVariant);
-        return ResponseEntity.ok(savedRoomVariant);
+    public ResponseEntity<GetRoomVariantDTO> createRoomVariant(@RequestBody CreateRoomVariantDTO dto) {
+        return ResponseEntity.ok(roomVariantUsecase.createRoomVariant(dto));
     }
 
-    /**
-     * Get All Room Variants
-     */
-    @GetMapping
-    public ResponseEntity<List<RoomVariant>> getAllRoomVariants() {
-        List<RoomVariant> roomVariants = roomVariantUseCase.getAllRoomVariants();
-        return ResponseEntity.ok(roomVariants);
-    }
-
-    /**
-     * Get Room Variant By ID
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<RoomVariant> getRoomVariantById(@PathVariable Long id) {
-        Optional<RoomVariant> roomVariant = roomVariantUseCase.getRoomVariantById(id);
-        return roomVariant.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<GetRoomVariantDTO> getRoomVariantById(@PathVariable Long id) {
+        return ResponseEntity.ok(roomVariantUsecase.getRoomVariantById(id));
     }
 
-    /**
-     * Get Room Variants By Property ID
-     */
+    @GetMapping
+    public ResponseEntity<List<GetRoomVariantDTO>> getAllRoomVariants() {
+        return ResponseEntity.ok(roomVariantUsecase.getAllRoomVariants());
+    }
+
     @GetMapping("/property/{propertyId}")
-    public ResponseEntity<List<RoomVariant>> getRoomVariantsByPropertyId(@PathVariable Long propertyId) {
-        List<RoomVariant> roomVariants = roomVariantUseCase.getRoomVariantsByPropertyId(propertyId);
-        return ResponseEntity.ok(roomVariants);
+    public ResponseEntity<List<GetRoomVariantDTO>> getRoomVariantsByPropertyId(@PathVariable Long propertyId) {
+        return ResponseEntity.ok(roomVariantUsecase.getRoomVariantsByPropertyId(propertyId));
     }
 
-    /**
-     * Update Room Variant
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<RoomVariant> updateRoomVariant(@PathVariable Long id, @RequestBody RoomVariant roomVariant) {
-        RoomVariant updatedRoomVariant = roomVariantUseCase.updateRoomVariant(id, roomVariant);
-        return ResponseEntity.ok(updatedRoomVariant);
+    public ResponseEntity<GetRoomVariantDTO> updateRoomVariant(@PathVariable Long id, @RequestBody UpdateRoomVariantDTO dto) {
+        return ResponseEntity.ok(roomVariantUsecase.updateRoomVariant(id, dto));
     }
 
-    /**
-     * Delete Room Variant (Soft Delete)
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoomVariant(@PathVariable Long id) {
-        roomVariantUseCase.deleteRoomVariant(id);
+        roomVariantUsecase.deleteRoomVariant(id);
         return ResponseEntity.noContent().build();
     }
 }

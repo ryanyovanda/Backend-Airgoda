@@ -69,6 +69,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/auth/google-login").permitAll() // ✅ Allow Google Login
                     .requestMatchers("/api/v1/users/register").permitAll()
                     .requestMatchers("/api/properties").permitAll()
+                    .requestMatchers("/api/room-variants").permitAll()
 
 
 

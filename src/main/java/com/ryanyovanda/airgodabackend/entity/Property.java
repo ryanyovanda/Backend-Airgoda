@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 @Entity
 @Table(name = "properties")
 public class Property {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "properties_id_gen")
     @SequenceGenerator(name = "properties_id_gen", sequenceName = "properties_property_id_seq", allocationSize = 1)
@@ -30,28 +31,38 @@ public class Property {
 
     @Size(max = 100)
     @Column(name = "room_id", length = 100)
-    private String roomId;
+    private String roomId;  // Ensure this is not a foreign key reference
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
-    private User tenant;
+    private User tenant;  // Ensure `User` entity exists
 
-    @ColumnDefault("true")
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @ColumnDefault("false")
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    // **Fix: Use @PrePersist to set default values**
+    @PrePersist
+    public void prePersist() {
+        if (isActive == null) isActive = true;
+        if (isDeleted == null) isDeleted = false;
+        if (createdAt == null) createdAt = OffsetDateTime.now();
+        updatedAt = OffsetDateTime.now();
+    }
+
+    // **Fix: Use @PreUpdate to update timestamps**
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = OffsetDateTime.now();
+    }
 }
