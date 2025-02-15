@@ -39,6 +39,10 @@ public class RoomVariant {
     private Integer maxGuest;
 
     @NotNull
+    @Column(name="capacity", nullable = false)
+    private Integer capacity;
+
+    @NotNull
     @Column(name = "price", nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
 

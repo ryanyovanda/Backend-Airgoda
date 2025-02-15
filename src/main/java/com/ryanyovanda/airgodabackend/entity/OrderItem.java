@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -38,24 +40,20 @@ public class OrderItem {
     private LocalDate endDate;
 
     @NotNull
-    @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
-    private BigDecimal totalPrice;
-
-    @NotNull
     @Column(name = "guest", nullable = false)
     private Integer guest;
 
+    // ✅ Ensure totalPrice is not null
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
+    private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    // ✅ Automatically set createdAt and updatedAt
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
 }
