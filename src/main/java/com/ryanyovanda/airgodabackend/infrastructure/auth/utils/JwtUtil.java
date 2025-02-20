@@ -1,48 +1,71 @@
 package com.ryanyovanda.airgodabackend.infrastructure.auth.utils;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
-    // ✅ Secret key for signing JWT (should be stored securely, e.g., application.properties)
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private static final long ACCESS_TOKEN_EXPIRY = 1000 * 60 * 30; // 30 minutes
-    private static final long REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 7; // 7 days
+    @Value("${jwt.secret}")
+    private String secret;
 
-    // ✅ Generate JWT Token (access or refresh)
-    public static String generateToken(String email, boolean isRefreshToken) {
-        long expiry = isRefreshToken ? REFRESH_TOKEN_EXPIRY : ACCESS_TOKEN_EXPIRY;
+    @Value("${jwt.access.expiry}")
+    private long accessTokenExpiry;
+
+    @Value("${jwt.refresh.expiry}")
+    private long refreshTokenExpiry;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(String email, boolean isRefreshToken) {
+        long expiry = isRefreshToken ? refreshTokenExpiry * 1000 : accessTokenExpiry * 1000;
 
         return Jwts.builder()
                 .setSubject(email)
+                .setIssuer("Airgoda") // ✅ Added issuer
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiry))
-                .signWith(SECRET_KEY)
+                .claim("type", isRefreshToken ? "refresh" : "access") // ✅ Added token type
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ✅ Extract email from JWT
-    public static String getEmailFromToken(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey()) // ✅ Fixed deprecated method
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 
-    // ✅ Validate JWT Token
-    public static boolean validateToken(String token) {
+    public String getEmailFromToken(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).build().parseClaimsJws(token);
+            System.out.println("Validating token: " + token);
+
+            Jwts.parser()
+                    .setSigningKey(getSigningKey()) // 🛠️ This might be the problem
+                    .build()
+                    .parseClaimsJws(token);
+
+            System.out.println("Token is valid!");
             return true;
         } catch (Exception e) {
+            System.out.println("JWT Validation failed: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
+
 }
+
