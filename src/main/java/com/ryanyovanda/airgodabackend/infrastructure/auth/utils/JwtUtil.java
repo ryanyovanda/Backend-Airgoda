@@ -5,7 +5,10 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Component
@@ -21,25 +24,27 @@ public class JwtUtil {
     private long refreshTokenExpiry;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email, boolean isRefreshToken) {
-        long expiry = isRefreshToken ? refreshTokenExpiry * 1000 : accessTokenExpiry * 1000;
+        long expiryDuration = isRefreshToken ? refreshTokenExpiry : accessTokenExpiry;
+        Date issuedAt = Date.from(Instant.now());
+        Date expiryDate = Date.from(Instant.now().plus(expiryDuration, ChronoUnit.SECONDS));
 
         return Jwts.builder()
                 .setSubject(email)
-                .setIssuer("Airgoda") // ✅ Added issuer
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiry))
-                .claim("type", isRefreshToken ? "refresh" : "access") // ✅ Added token type
+                .setIssuer("Airgoda")
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiryDate)
+                .claim("type", isRefreshToken ? "refresh" : "access")
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(getSigningKey()) // ✅ Fixed deprecated method
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -52,20 +57,23 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             System.out.println("Validating token: " + token);
-
             Jwts.parser()
-                    .setSigningKey(getSigningKey()) // 🛠️ This might be the problem
+                    .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
-
             System.out.println("Token is valid!");
             return true;
+        } catch (ExpiredJwtException e) {
+            System.out.println("JWT expired: " + e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            System.out.println("Unsupported JWT: " + e.getMessage());
+        } catch (MalformedJwtException e) {
+            System.out.println("Malformed JWT: " + e.getMessage());
+        } catch (SignatureException e) {
+            System.out.println("Invalid signature: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("JWT Validation failed: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            System.out.println("JWT validation failed: " + e.getMessage());
         }
+        return false;
     }
-
 }
-

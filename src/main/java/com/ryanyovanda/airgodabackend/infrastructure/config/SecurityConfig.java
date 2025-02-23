@@ -74,13 +74,14 @@ public class SecurityConfig {
                     .requestMatchers("/peak-rates").permitAll()
                     .requestMatchers("/discounts").permitAll()
                     .requestMatchers("/api/v1/auth/refresh").permitAll()
+                    .requestMatchers("/api/v1/auth/session").permitAll()
 
 
 
                     // ✅ Define protected routes (JWT required)
                     .requestMatchers("/api/v1/protected-resource/**").authenticated()
                     .anyRequest().authenticated())
-
+            
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .oauth2ResourceServer(oauth2 -> {
               oauth2.jwt(jwt -> jwt.decoder(jwtDecoder())); // ✅ Decode JWT
