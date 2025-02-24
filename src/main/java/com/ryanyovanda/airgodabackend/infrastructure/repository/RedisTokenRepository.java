@@ -16,22 +16,35 @@ public class RedisTokenRepository {
 
     public void saveToken(String token, Duration duration) {
         try {
-            redisTemplate.opsForValue().set(token, "blacklisted", duration);
+            if (duration == null || duration.isNegative() || duration.isZero() || duration.getSeconds() < 1) {
+                System.err.println("❌ ERROR: Invalid token expiration time: " + duration + ". Using default TTL of 3600 seconds.");
+                duration = Duration.ofSeconds(3600); // Set default to 1 hour if invalid
+            }
+
+            // Log token and expiration time
+            System.out.println("🔹 Saving refresh token to Redis: " + token + " with TTL: " + duration.getSeconds() + " seconds");
+
+            // Store token in Redis with validated expiration time
+            redisTemplate.opsForValue().set("refresh_token:" + token, "valid", duration);
+
+            System.out.println("✅ Token successfully saved in Redis.");
         } catch (RedisConnectionFailureException e) {
-            System.err.println("⚠️ WARNING: Redis is unavailable, cannot blacklist token.");
+            System.err.println("❌ Redis is unavailable, cannot store token.");
         } catch (Exception e) {
-            System.err.println("⚠️ ERROR: Unexpected error while saving token to Redis: " + e.getMessage());
+            System.err.println("❌ ERROR: Failed to save token in Redis: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
+
     public boolean isTokenBlacklisted(String token) {
         try {
-            return Boolean.TRUE.equals(redisTemplate.hasKey(token));
+            return Boolean.TRUE.equals(redisTemplate.hasKey("refresh_token:" + token));
         } catch (RedisConnectionFailureException e) {
             System.err.println("⚠️ WARNING: Redis is unavailable, assuming token is NOT blacklisted.");
             return false; // Allow tokens if Redis is down
         } catch (Exception e) {
-            System.err.println("⚠️ ERROR: Unexpected error while checking token blacklist status: " + e.getMessage());
+            System.err.println("❌ ERROR: Failed to check token status: " + e.getMessage());
             return false;
         }
     }

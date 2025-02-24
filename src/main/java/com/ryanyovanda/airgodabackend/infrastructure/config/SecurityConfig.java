@@ -71,6 +71,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/properties/**").permitAll()
                     .requestMatchers("/api/room-variants/**").permitAll()
                     .requestMatchers("/orders/**").permitAll()
+                    .requestMatchers("/orders").permitAll()
                     .requestMatchers("/peak-rates").permitAll()
                     .requestMatchers("/discounts").permitAll()
                     .requestMatchers("/api/v1/auth/refresh").permitAll()
