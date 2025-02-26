@@ -60,6 +60,17 @@ public class User {
   @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
+  // ✅ Email Verification Fields
+  @Column(name = "is_verified", nullable = false)
+  @ColumnDefault("false")
+  private Boolean isVerified = false;
+
+  @Column(name = "verification_token", length = 255)
+  private String verificationToken;
+
+  @Column(name = "token_expiry")
+  private OffsetDateTime tokenExpiry;
+
   @PrePersist
   protected void onCreate() {
     createdAt = OffsetDateTime.now();

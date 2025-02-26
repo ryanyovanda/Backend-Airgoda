@@ -76,6 +76,9 @@ public class SecurityConfig {
                     .requestMatchers("/discounts").permitAll()
                     .requestMatchers("/api/v1/auth/refresh").permitAll()
                     .requestMatchers("/api/v1/auth/session").permitAll()
+                    .requestMatchers("/api/v1/users/verify").permitAll()
+                    .requestMatchers("/api/v1/users/resend-verification").permitAll()
+
 
 
 

@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UsersRepository extends JpaRepository<User, Long> {
   Optional<User> findByEmailContainsIgnoreCase(String email);
+
+  // ✅ Find user by verification token
+  Optional<User> findByVerificationToken(String verificationToken);
 }
