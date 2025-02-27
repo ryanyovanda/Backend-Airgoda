@@ -36,12 +36,13 @@ public class CreateUserUsecaseImpl implements CreateUserUsecase {
     User newUser = req.toEntity();
     newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
-    Optional<Role> defaultRole = roleRepository.findByName("USER");
-    if (defaultRole.isPresent()) {
-        newUser.getRoles().add(defaultRole.get());
+    Optional<Role> requestedRole = roleRepository.findByName(req.getRole());
+    if (requestedRole.isPresent()) {
+      newUser.getRoles().add(requestedRole.get());
     } else {
-      throw new RuntimeException("Default role not found");
+      throw new RuntimeException("Role not found");
     }
+
     var savedUser = usersRepository.save(newUser);
     return new UserDetailResponseDTO(savedUser.getId(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getIsOnboardingFinished());
   }

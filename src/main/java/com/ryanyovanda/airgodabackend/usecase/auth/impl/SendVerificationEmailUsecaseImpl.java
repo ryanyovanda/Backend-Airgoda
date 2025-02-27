@@ -49,7 +49,7 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
 
     private void sendEmail(String to, String token) {
         String subject = "Verify Your Email";
-        String verificationLink = "http://localhost:3000/api/v1/users/verify?token=" + token;
+        String verificationLink = "http://localhost:8080/api/v1/users/verify?token=" + token;
         String body = "<p>Click the link below to verify your email:</p>"
                 + "<a href=\"" + verificationLink + "\">Verify Email</a>";
 

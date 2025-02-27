@@ -17,6 +17,8 @@ public class CreateUserRequestDTO {
   private String password;
   private String pin;
   private String profilePictureUrl;
+  private String role;
+
 
   public User toEntity() {
     User user = new User();
