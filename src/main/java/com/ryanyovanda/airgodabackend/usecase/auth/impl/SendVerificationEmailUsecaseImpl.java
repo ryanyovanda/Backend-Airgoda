@@ -26,7 +26,6 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
     @Override
     @Transactional
     public void sendVerificationEmail(String email) {
-        // ✅ Fetch user from the database
         Optional<User> userOpt = usersRepository.findByEmailContainsIgnoreCase(email);
 
         if (userOpt.isEmpty()) {
@@ -35,23 +34,32 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
 
         User user = userOpt.get();
 
-        // ✅ Generate new token
+
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
         user.setTokenExpiry(OffsetDateTime.now().plusHours(1));
 
-        // ✅ Save user with updated token
+
         usersRepository.save(user);
 
-        // ✅ Send email
+
         sendEmail(user.getEmail(), token);
     }
 
     private void sendEmail(String to, String token) {
         String subject = "Verify Your Email";
         String verificationLink = "http://localhost:8080/api/v1/users/verify?token=" + token;
-        String body = "<p>Click the link below to verify your email:</p>"
-                + "<a href=\"" + verificationLink + "\">Verify Email</a>";
+
+        String body = "<html><body style=\"font-family: Arial, sans-serif; text-align: center;\">"
+                + "<div style=\"max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;\">"
+                + "<img src=\"https://res.cloudinary.com/dxisnzl5i/image/upload/v1740629046/wreq8kdx9fa4tm699psg.png\" width=\"120\" alt=\"Company Logo\" style=\"margin-bottom: 20px;\"/>"
+                + "<h2 style=\"color: #333;\">Verify Your Email Address</h2>"
+                + "<p>Please confirm that you want to use this email to activate your account.</p>"
+                + "<p>Once verified, you'll be able to access all features.</p>"
+                + "<a href=\"" + verificationLink + "\" style=\"background-color: #8A2DE2; color: #ffffff; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-size: 16px; display: inline-block;\">Verify My Email</a>"
+                + "<p style=\"margin-top: 20px;\">Or paste this link into your browser:</p>"
+                + "<p><a href=\"" + verificationLink + "\" style=\"color: #8A2DE2;\">" + verificationLink + "</a></p>"
+                + "</div></body></html>";
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -64,4 +72,6 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
             throw new RuntimeException("Failed to send email", e);
         }
     }
+
+
 }
