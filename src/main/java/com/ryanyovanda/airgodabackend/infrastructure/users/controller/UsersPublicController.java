@@ -1,5 +1,7 @@
 package com.ryanyovanda.airgodabackend.infrastructure.users.controller;
 
+import com.ryanyovanda.airgodabackend.entity.User;
+import com.ryanyovanda.airgodabackend.infrastructure.users.dto.UpdateUserProfileRequestDTO;
 import com.ryanyovanda.airgodabackend.usecase.auth.ResendVerificationEmailUsecase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +14,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.users.dto.CreateUserRequest
 import com.ryanyovanda.airgodabackend.usecase.auth.VerifyEmailUsecase;
 import com.ryanyovanda.airgodabackend.usecase.user.CreateUserUsecase;
 import com.ryanyovanda.airgodabackend.usecase.user.GetUsersUseCase;
+import com.ryanyovanda.airgodabackend.usecase.user.UpdateUserProfileUsecase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -28,6 +31,8 @@ public class UsersPublicController {
   private final CreateUserUsecase createUserUsecase;
   private final VerifyEmailUsecase verifyEmailUsecase;
   private final ResendVerificationEmailUsecase resendVerificationEmailUsecase;
+  private final UpdateUserProfileUsecase updateUserProfileUsecase;
+
 
 
   //  Simple RBAC where only logged-in admins are allowed to access get all users endpoint
@@ -43,6 +48,17 @@ public class UsersPublicController {
   public ResponseEntity<?> getUser(@PathVariable final Long id) {
     return Response.successfulResponse("Get user details success", getUsersUseCase.getUserById(id));
   }
+
+
+  @PutMapping("/profile")
+  public ResponseEntity<?> updateProfile(@RequestBody UpdateUserProfileRequestDTO request) {
+    String userEmail = Claims.getEmailFromJwt(); // Get email from JWT
+    request.setEmail(userEmail); // Ensure the request updates the logged-in user only
+
+    User updatedUser = updateUserProfileUsecase.updateProfile(request);
+    return Response.successfulResponse("Profile updated successfully", updatedUser);
+  }
+
 
   @PostMapping("/register")
   public ResponseEntity<?> createUser(@RequestBody CreateUserRequestDTO req) {

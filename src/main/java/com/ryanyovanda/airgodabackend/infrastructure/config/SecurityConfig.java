@@ -78,6 +78,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/auth/session").permitAll()
                     .requestMatchers("/api/v1/users/verify").permitAll()
                     .requestMatchers("/api/v1/users/resend-verification").permitAll()
+                    .requestMatchers("/api/v1/users/**").permitAll()
 
 
 

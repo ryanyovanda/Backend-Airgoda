@@ -11,6 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class UserDetailResponseDTO implements Serializable {
   private Long id;
+  private String name;
   private String email;
   private String profilePictureUrl;
   private Boolean isOnboardingFinished = false;

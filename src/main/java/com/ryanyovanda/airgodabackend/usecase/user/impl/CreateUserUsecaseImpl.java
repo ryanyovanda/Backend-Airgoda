@@ -44,7 +44,7 @@ public class CreateUserUsecaseImpl implements CreateUserUsecase {
     }
 
     var savedUser = usersRepository.save(newUser);
-    return new UserDetailResponseDTO(savedUser.getId(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getIsOnboardingFinished());
+    return new UserDetailResponseDTO(savedUser.getId(), savedUser.getName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getIsOnboardingFinished());
   }
 
   @Override

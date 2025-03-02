@@ -45,9 +45,10 @@ public class TokenGenerationUsecaseImpl implements TokenGenerationUsecase {
         .issuedAt(now)
         .expiresAt(now.plusSeconds(expiry))
         .subject(email)
-        .claim("scope", scope)
-        .claim("userId", user.getId())
-        .claim("type", tokenType.name())
+            .claim("scope", scope)
+            .claim("userId", user.getId())
+            .claim("name", user.getName())
+            .claim("type", tokenType.name())
         .build();
 
     JwsHeader jwsHeader = JwsHeader.with(() -> "HS256").build();
