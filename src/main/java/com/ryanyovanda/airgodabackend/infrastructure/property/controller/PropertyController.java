@@ -1,6 +1,7 @@
 package com.ryanyovanda.airgodabackend.infrastructure.property.controller;
 
-import com.ryanyovanda.airgodabackend.entity.Property;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreatePropertyRequestDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyResponseDTO;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,27 +21,27 @@ public class PropertyController {
     }
 
     @PostMapping
-    public ResponseEntity<Property> createProperty(@RequestBody Property property) {
-        Property savedProperty = propertyUsecase.createProperty(property);
+    public ResponseEntity<PropertyResponseDTO> createProperty(@RequestBody CreatePropertyRequestDTO requestDTO) {
+        PropertyResponseDTO savedProperty = propertyUsecase.createProperty(requestDTO);
         return ResponseEntity.ok(savedProperty);
     }
 
     @GetMapping
-    public ResponseEntity<List<Property>> getAllProperties() {
-        List<Property> properties = propertyUsecase.getAllProperties();
+    public ResponseEntity<List<PropertyResponseDTO>> getAllProperties() {
+        List<PropertyResponseDTO> properties = propertyUsecase.getAllProperties();
         return ResponseEntity.ok(properties);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Property> getPropertyById(@PathVariable Long id) {
-        Optional<Property> property = propertyUsecase.getPropertyById(id);
+    public ResponseEntity<PropertyResponseDTO> getPropertyById(@PathVariable Long id) {
+        Optional<PropertyResponseDTO> property = propertyUsecase.getPropertyById(id);
         return property.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Property> updateProperty(@PathVariable Long id, @RequestBody Property property) {
-        Property updatedProperty = propertyUsecase.updateProperty(id, property);
+    public ResponseEntity<PropertyResponseDTO> updateProperty(@PathVariable Long id, @RequestBody CreatePropertyRequestDTO requestDTO) {
+        PropertyResponseDTO updatedProperty = propertyUsecase.updateProperty(id, requestDTO);
         return ResponseEntity.ok(updatedProperty);
     }
 
@@ -50,4 +51,3 @@ public class PropertyController {
         return ResponseEntity.noContent().build();
     }
 }
-

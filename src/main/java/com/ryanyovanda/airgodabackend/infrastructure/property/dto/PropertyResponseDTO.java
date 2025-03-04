@@ -14,5 +14,5 @@ public class PropertyResponseDTO {
     private String roomId;
     private Boolean isActive;
     private OffsetDateTime createdAt;
-    private String categoryName; // New field for category name
+    private Long categoryId; // New field for category name
 }
