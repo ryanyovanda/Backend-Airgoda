@@ -37,6 +37,11 @@ public class Property {
     @JoinColumn(name = "tenant_id")
     private User tenant;  // Ensure `User` entity exists
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private PropertyCategory category;
+
+
     @Column(name = "is_active")
     private Boolean isActive;
 

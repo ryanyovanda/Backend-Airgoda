@@ -38,7 +38,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         return propertyRepository.findById(id).map(existingProperty -> {
             existingProperty.setName(property.getName());
             existingProperty.setDescription(property.getDescription());
-//            existingProperty.setCategory(property.getCategory());
+            existingProperty.setCategory(property.getCategory());
             return propertyRepository.save(existingProperty);
         }).orElseThrow(() -> new RuntimeException("Property not found"));
     }
