@@ -17,7 +17,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy the built jar file from the build stage
-COPY --from=build /app/target/fezz4ubackend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/airgoda-backend-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the port the app runs on
 EXPOSE 8080
