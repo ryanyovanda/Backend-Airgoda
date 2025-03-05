@@ -10,4 +10,5 @@ public class CreatePropertyRequestDTO {
     private String description;
     private String roomId;
     private Long categoryId;
+    private Long locationId;
 }

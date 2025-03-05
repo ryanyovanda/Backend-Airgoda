@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, Long> {
     List<Property> findByIsActiveTrue();
-
+    List<Property> findByLocationId(Long locationId);
     @Override
     Optional<Property> findById(Long PropertyId);
 

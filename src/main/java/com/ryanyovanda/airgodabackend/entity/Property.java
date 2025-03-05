@@ -41,6 +41,9 @@ public class Property {
     @JoinColumn(name = "category_id")
     private PropertyCategory category;
 
+    @ManyToOne
+    @JoinColumn(name = "location_id", nullable = false)
+    private Location location;
 
     @Column(name = "is_active")
     private Boolean isActive;

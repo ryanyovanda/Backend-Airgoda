@@ -15,4 +15,5 @@ public class PropertyResponseDTO {
     private Boolean isActive;
     private OffsetDateTime createdAt;
     private Long categoryId; // New field for category name
+    private LocationDTO location;
 }

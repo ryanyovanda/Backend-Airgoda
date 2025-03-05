@@ -1,9 +1,12 @@
 package com.ryanyovanda.airgodabackend.usecase.property.impl;
 
+import com.ryanyovanda.airgodabackend.entity.Location;
 import com.ryanyovanda.airgodabackend.entity.Property;
 import com.ryanyovanda.airgodabackend.entity.PropertyCategory;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreatePropertyRequestDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.LocationDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyResponseDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.repository.LocationRepository;
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.PropertyCategoryRepository;
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.PropertyRepository;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
@@ -16,13 +19,18 @@ import java.util.stream.Collectors;
 
 @Service
 public class PropertyUsecaseImpl implements PropertyUsecase {
+
     private final PropertyRepository propertyRepository;
     private final PropertyCategoryRepository propertyCategoryRepository;
+    private final LocationRepository locationRepository;
 
     @Autowired
-    public PropertyUsecaseImpl(PropertyRepository propertyRepository, PropertyCategoryRepository propertyCategoryRepository) {
+    public PropertyUsecaseImpl(PropertyRepository propertyRepository,
+                               PropertyCategoryRepository propertyCategoryRepository,
+                               LocationRepository locationRepository) {
         this.propertyRepository = propertyRepository;
         this.propertyCategoryRepository = propertyCategoryRepository;
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -31,11 +39,23 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
         property.setRoomId(requestDTO.getRoomId());
+        property.setIsActive(true); // Default active
 
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
             property.setCategory(category);
+        }
+
+        if (requestDTO.getLocationId() != null) {
+            Location location = locationRepository.findById(requestDTO.getLocationId())
+                    .orElseThrow(() -> new RuntimeException("Location not found"));
+
+            if (location.getType() != Location.LocationType.CITY && location.getType() != Location.LocationType.REGENCY) {
+                throw new IllegalArgumentException("Property must be assigned to a city or regency");
+            }
+
+            property.setLocation(location);
         }
 
         Property savedProperty = propertyRepository.save(property);
@@ -68,6 +88,17 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             property.setCategory(category);
         }
 
+        if (requestDTO.getLocationId() != null) {
+            Location location = locationRepository.findById(requestDTO.getLocationId())
+                    .orElseThrow(() -> new RuntimeException("Location not found"));
+
+            if (location.getType() != Location.LocationType.CITY && location.getType() != Location.LocationType.REGENCY) {
+                throw new IllegalArgumentException("Property must be assigned to a city or regency");
+            }
+
+            property.setLocation(location);
+        }
+
         Property updatedProperty = propertyRepository.save(property);
         return mapToResponseDTO(updatedProperty);
     }
@@ -86,7 +117,17 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         responseDTO.setName(property.getName());
         responseDTO.setDescription(property.getDescription());
         responseDTO.setRoomId(property.getRoomId());
+        responseDTO.setIsActive(property.getIsActive());
         responseDTO.setCategoryId(property.getCategory() != null ? property.getCategory().getId() : null);
+
+        if (property.getLocation() != null) {
+            responseDTO.setLocation(new LocationDTO(
+                    property.getLocation().getId(),
+                    property.getLocation().getName(),
+                    property.getLocation().getType().toString()
+            ));
+        }
+
         return responseDTO;
     }
 }
