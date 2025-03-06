@@ -28,6 +28,6 @@ public class GetUserUseCaseImpl implements GetUsersUseCase {
   @Cacheable(value = "userDetailResponseDTO", key = "#id", unless = "#result.isOnboardingFinished == true")
   public UserDetailResponseDTO getUserById(Long id) {
     var foundUser = usersRepository.findById(id).orElseThrow(() -> new DataNotFoundException("User not found"));
-    return new UserDetailResponseDTO(foundUser.getId(), foundUser.getName(), foundUser.getEmail(), foundUser.getProfilePictureUrl(), foundUser.getIsOnboardingFinished());
+    return new UserDetailResponseDTO(foundUser.getId(), foundUser.getName(), foundUser.getEmail(), foundUser.getProfilePictureUrl(), foundUser.getIsVerified(), foundUser.getIsOnboardingFinished());
   }
 }

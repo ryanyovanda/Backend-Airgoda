@@ -47,7 +47,7 @@ public class TokenGenerationUsecaseImpl implements TokenGenerationUsecase {
         .subject(email)
             .claim("scope", scope)
             .claim("userId", user.getId())
-            .claim("name", user.getName())
+            .claim("name", user.getName() != null ? user.getName() : "Unknown")
             .claim("type", tokenType.name())
         .build();
 
