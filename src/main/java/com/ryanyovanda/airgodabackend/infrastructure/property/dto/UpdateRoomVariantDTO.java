@@ -18,8 +18,9 @@ public class UpdateRoomVariantDTO {
 
     private BigDecimal price;
 
-    private Integer capacity;
+    private Integer maxGuest; // Added to allow updating the number of guests per room
+
+    private Integer capacity; // Represents how many rooms are available
 
     private List<String> facilities;
-
 }
