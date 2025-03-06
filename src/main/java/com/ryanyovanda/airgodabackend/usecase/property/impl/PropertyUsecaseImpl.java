@@ -11,6 +11,8 @@ import com.ryanyovanda.airgodabackend.infrastructure.property.repository.Propert
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.PropertyRepository;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,22 +41,18 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
         property.setRoomId(requestDTO.getRoomId());
-        property.setIsActive(true); // Default active
+        property.setIsActive(true);
 
+        // Assign category
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             property.setCategory(category);
         }
 
+        // Assign location
         if (requestDTO.getLocationId() != null) {
-            Location location = locationRepository.findById(requestDTO.getLocationId())
-                    .orElseThrow(() -> new RuntimeException("Location not found"));
-
-            if (location.getType() != Location.LocationType.CITY && location.getType() != Location.LocationType.REGENCY) {
-                throw new IllegalArgumentException("Property must be assigned to a city or regency");
-            }
-
+            Location location = validateAndGetLocation(requestDTO.getLocationId());
             property.setLocation(location);
         }
 
@@ -64,8 +62,9 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
     @Override
     public List<PropertyResponseDTO> getAllProperties() {
-        List<Property> properties = propertyRepository.findAll();
-        return properties.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
+        return propertyRepository.findByIsActiveTrue()
+                .stream().map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -76,26 +75,22 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     @Override
     public PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO) {
         Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Property not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Property not found"));
 
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
         property.setRoomId(requestDTO.getRoomId());
 
+        // Update category
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             property.setCategory(category);
         }
 
+        // Update location
         if (requestDTO.getLocationId() != null) {
-            Location location = locationRepository.findById(requestDTO.getLocationId())
-                    .orElseThrow(() -> new RuntimeException("Location not found"));
-
-            if (location.getType() != Location.LocationType.CITY && location.getType() != Location.LocationType.REGENCY) {
-                throw new IllegalArgumentException("Property must be assigned to a city or regency");
-            }
-
+            Location location = validateAndGetLocation(requestDTO.getLocationId());
             property.setLocation(location);
         }
 
@@ -106,11 +101,65 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     @Override
     public void deleteProperty(Long id) {
         if (!propertyRepository.existsById(id)) {
-            throw new RuntimeException("Property not found");
+            throw new IllegalArgumentException("Property not found");
         }
         propertyRepository.deleteById(id);
     }
 
+    // Pagination & Filtering Implementations
+
+    @Override
+    public Page<PropertyResponseDTO> getProperties(Pageable pageable) {
+        return propertyRepository.findByIsActiveTrue(pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByLocation(Long locationId, Pageable pageable) {
+        return propertyRepository.findByLocationIdAndIsActiveTrue(locationId, pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByCategory(Long categoryId, Pageable pageable) {
+        return propertyRepository.findByCategoryIdAndIsActiveTrue(categoryId, pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByLocationAndCategory(Long locationId, Long categoryId, Pageable pageable) {
+        return propertyRepository.findByLocationIdAndCategoryIdAndIsActiveTrue(locationId, categoryId, pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesSortedByCheapestPrice(Pageable pageable) {
+        return propertyRepository.findAllSortedByCheapestPrice(pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByLocationSortedByCheapest(Long locationId, Pageable pageable) {
+        return propertyRepository.findByLocationSortedByCheapestPrice(locationId, pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByCategorySortedByCheapest(Long categoryId, Pageable pageable) {
+        return propertyRepository.findByCategorySortedByCheapestPrice(categoryId, pageable).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByLocationAndCategorySortedByCheapest(Long locationId, Long categoryId, Pageable pageable) {
+        return propertyRepository.findByLocationAndCategorySortedByCheapestPrice(locationId, categoryId, pageable).map(this::mapToResponseDTO);
+    }
+
+    // Helper Method: Validate and Get Location
+    private Location validateAndGetLocation(Long locationId) {
+        Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new IllegalArgumentException("Location not found"));
+
+        if (location.getType() != Location.LocationType.CITY && location.getType() != Location.LocationType.REGENCY) {
+            throw new IllegalArgumentException("Property must be assigned to a city or regency");
+        }
+        return location;
+    }
+
+    // Helper Method: Convert Property to DTO
     private PropertyResponseDTO mapToResponseDTO(Property property) {
         PropertyResponseDTO responseDTO = new PropertyResponseDTO();
         responseDTO.setId(property.getId());
