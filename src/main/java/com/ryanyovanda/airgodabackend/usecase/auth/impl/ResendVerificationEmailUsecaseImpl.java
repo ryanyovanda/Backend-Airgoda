@@ -19,7 +19,7 @@ public class ResendVerificationEmailUsecaseImpl implements ResendVerificationEma
     private final UsersRepository usersRepository;
     private final SendVerificationEmailUsecase sendVerificationEmailUsecase;
 
-    private static final int MAX_RESEND_ATTEMPTS = 3;
+    private static final int MAX_RESEND_ATTEMPTS = 10;
 
     @Override
     @Transactional

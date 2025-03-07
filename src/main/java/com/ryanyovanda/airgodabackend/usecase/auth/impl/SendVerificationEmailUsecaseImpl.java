@@ -29,26 +29,34 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
         Optional<User> userOpt = usersRepository.findByEmailContainsIgnoreCase(email);
 
         if (userOpt.isEmpty()) {
+            System.out.println("❌ User not found with email: " + email);
             throw new RuntimeException("User not found with email: " + email);
         }
 
         User user = userOpt.get();
 
-
+        // ✅ Generate and store a new verification token
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
         user.setTokenExpiry(OffsetDateTime.now().plusHours(1));
 
+        usersRepository.save(user);  // ✅ Ensure token is saved in DB
+        System.out.println("✅ Token generated and saved: " + token);
 
-        usersRepository.save(user);
+        // ✅ Confirm token persistence by re-fetching from DB
+        Optional<User> verifySave = usersRepository.findByEmailContainsIgnoreCase(email);
+        if (verifySave.isEmpty() || verifySave.get().getVerificationToken() == null) {
+            System.out.println("❌ Token failed to save in database!");
+            throw new RuntimeException("Failed to save verification token.");
+        }
 
-
+        // ✅ Send verification email
         sendEmail(user.getEmail(), token);
     }
 
     private void sendEmail(String to, String token) {
         String subject = "Verify Your Email";
-        String verificationLink = "http://localhost:8080/api/v1/users/verify?token=" + token;
+        String verificationLink = "http://localhost:3000/verify?token=" + token;
 
         String body = "<html><body style=\"font-family: Arial, sans-serif; text-align: center;\">"
                 + "<div style=\"max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;\">"
@@ -68,10 +76,10 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
             helper.setSubject(subject);
             helper.setText(body, true);
             mailSender.send(message);
+            System.out.println("✅ Verification email sent successfully to: " + to);
         } catch (MessagingException e) {
+            System.out.println("❌ Email sending failed!");
             throw new RuntimeException("Failed to send email", e);
         }
     }
-
-
 }

@@ -14,6 +14,7 @@ public class UserDetailResponseDTO implements Serializable {
   private String name;
   private String email;
   private String profilePictureUrl;
-  private Boolean isOnboardingFinished = false;
   private Boolean isVerified;
+  private Boolean isOnboardingFinished = false;
+
 }

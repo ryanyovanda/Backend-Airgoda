@@ -5,7 +5,10 @@ import com.ryanyovanda.airgodabackend.infrastructure.users.repository.UsersRepos
 import com.ryanyovanda.airgodabackend.usecase.auth.VerifyEmailUsecase;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -18,27 +21,24 @@ public class VerifyEmailUsecaseImpl implements VerifyEmailUsecase {
 
     @Override
     @Transactional
-    public void verifyUser(String token) {
-        // ✅ Find user by verification token
+    public void verifyUser(String token) {  // ❌ No @CacheEvict
         Optional<User> userOpt = usersRepository.findByVerificationToken(token);
 
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Invalid or expired token.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token.");
         }
 
         User user = userOpt.get();
 
-        // ✅ Check if token has expired
         if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(OffsetDateTime.now())) {
-            throw new RuntimeException("Verification token has expired.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verification token has expired.");
         }
 
-        // ✅ Mark user as verified
         user.setIsVerified(true);
         user.setVerificationToken(null);
         user.setTokenExpiry(null);
 
-        // ✅ Save changes
         usersRepository.save(user);
     }
+
 }
