@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,4 +17,5 @@ public class PropertyResponseDTO {
     private OffsetDateTime createdAt;
     private Long categoryId; // New field for category name
     private LocationDTO location;
+    private List<String> imageUrls;
 }

@@ -1,5 +1,7 @@
 package com.ryanyovanda.airgodabackend.infrastructure.property.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreatePropertyRequestDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyResponseDTO;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
@@ -9,7 +11,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -22,12 +26,26 @@ public class PropertyController {
         this.propertyUsecase = propertyUsecase;
     }
 
-    // ✅ Create a new property
-    @PostMapping
-    public ResponseEntity<PropertyResponseDTO> createProperty(@RequestBody CreatePropertyRequestDTO requestDTO) {
-        PropertyResponseDTO savedProperty = propertyUsecase.createProperty(requestDTO);
+    // ✅ Create a new property with images
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<PropertyResponseDTO> createProperty(
+            @RequestPart(value = "data") String requestData,
+            @RequestPart(value = "images") List<MultipartFile> images) {
+
+        // Convert JSON String to DTO
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreatePropertyRequestDTO requestDTO;
+
+        try {
+            requestDTO = objectMapper.readValue(requestData, CreatePropertyRequestDTO.class);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        PropertyResponseDTO savedProperty = propertyUsecase.createProperty(requestDTO, images);
         return ResponseEntity.ok(savedProperty);
     }
+
 
     // ✅ Get paginated properties
     @GetMapping
@@ -48,9 +66,12 @@ public class PropertyController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ✅ Update property
+    // ✅ Update property (excluding images)
     @PutMapping("/{id}")
-    public ResponseEntity<PropertyResponseDTO> updateProperty(@PathVariable Long id, @RequestBody CreatePropertyRequestDTO requestDTO) {
+    public ResponseEntity<PropertyResponseDTO> updateProperty(
+            @PathVariable Long id,
+            @RequestBody CreatePropertyRequestDTO requestDTO) {
+
         PropertyResponseDTO updatedProperty = propertyUsecase.updateProperty(id, requestDTO);
         return ResponseEntity.ok(updatedProperty);
     }

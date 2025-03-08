@@ -1,20 +1,19 @@
 package com.ryanyovanda.airgodabackend.usecase.property.impl;
 
-import com.ryanyovanda.airgodabackend.entity.Location;
-import com.ryanyovanda.airgodabackend.entity.Property;
-import com.ryanyovanda.airgodabackend.entity.PropertyCategory;
+import com.ryanyovanda.airgodabackend.entity.*;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreatePropertyRequestDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.LocationDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyResponseDTO;
-import com.ryanyovanda.airgodabackend.infrastructure.property.repository.LocationRepository;
-import com.ryanyovanda.airgodabackend.infrastructure.property.repository.PropertyCategoryRepository;
-import com.ryanyovanda.airgodabackend.infrastructure.property.repository.PropertyRepository;
+import com.ryanyovanda.airgodabackend.infrastructure.property.repository.*;
+import com.ryanyovanda.airgodabackend.usecase.cloudinary.CloudinaryUsecase;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,18 +24,25 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     private final PropertyRepository propertyRepository;
     private final PropertyCategoryRepository propertyCategoryRepository;
     private final LocationRepository locationRepository;
+    private final PropertyImageRepository propertyImageRepository;
+    private final CloudinaryUsecase cloudinaryUsecase;
 
     @Autowired
-    public PropertyUsecaseImpl(PropertyRepository propertyRepository,
-                               PropertyCategoryRepository propertyCategoryRepository,
-                               LocationRepository locationRepository) {
+    public PropertyUsecaseImpl(
+            PropertyRepository propertyRepository,
+            PropertyCategoryRepository propertyCategoryRepository,
+            LocationRepository locationRepository,
+            PropertyImageRepository propertyImageRepository,
+            CloudinaryUsecase cloudinaryUsecase) {
         this.propertyRepository = propertyRepository;
         this.propertyCategoryRepository = propertyCategoryRepository;
         this.locationRepository = locationRepository;
+        this.propertyImageRepository = propertyImageRepository;
+        this.cloudinaryUsecase = cloudinaryUsecase;
     }
 
     @Override
-    public PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO) {
+    public PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images) {
         Property property = new Property();
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
@@ -56,7 +62,20 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             property.setLocation(location);
         }
 
+        // Save property first to get the ID
         Property savedProperty = propertyRepository.save(property);
+
+        // Upload images and save to PropertyImage table
+        List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
+        List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
+            PropertyImage propertyImage = new PropertyImage();
+            propertyImage.setImageUrl(url);
+            propertyImage.setProperty(savedProperty);
+            return propertyImage;
+        }).collect(Collectors.toList());
+
+        propertyImageRepository.saveAll(propertyImages);
+
         return mapToResponseDTO(savedProperty);
     }
 
@@ -176,6 +195,13 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
                     property.getLocation().getType().toString()
             ));
         }
+
+        // Set image URLs
+        List<String> imageUrls = property.getImages() != null
+                ? property.getImages().stream().map(PropertyImage::getImageUrl).toList()
+                : new ArrayList<>();
+
+        responseDTO.setImageUrls(imageUrls);
 
         return responseDTO;
     }

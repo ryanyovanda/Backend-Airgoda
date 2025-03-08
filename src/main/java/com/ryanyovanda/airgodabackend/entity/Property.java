@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,6 +46,9 @@ public class Property {
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PropertyImage> images = new ArrayList<>(); // ✅ Initialize list to avoid null errors
 
     @Column(name = "is_active")
     private Boolean isActive;
