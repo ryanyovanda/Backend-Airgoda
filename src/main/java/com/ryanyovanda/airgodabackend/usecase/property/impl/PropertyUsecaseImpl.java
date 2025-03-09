@@ -7,6 +7,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyRespon
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.*;
 import com.ryanyovanda.airgodabackend.usecase.cloudinary.CloudinaryUsecase;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,23 +50,19 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(true);
 
-        // Assign category
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             property.setCategory(category);
         }
 
-        // Assign location
         if (requestDTO.getLocationId() != null) {
             Location location = validateAndGetLocation(requestDTO.getLocationId());
             property.setLocation(location);
         }
 
-        // Save property first to get the ID
         Property savedProperty = propertyRepository.save(property);
 
-        // Upload images and save to PropertyImage table
         List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
         List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
             PropertyImage propertyImage = new PropertyImage();
@@ -80,15 +77,37 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
-    public List<PropertyResponseDTO> getAllProperties() {
-        return propertyRepository.findByIsActiveTrue()
-                .stream().map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public void deletePropertyImage(Long imageId) {
+        propertyImageRepository.deleteById(imageId);
     }
 
     @Override
     public Optional<PropertyResponseDTO> getPropertyById(Long id) {
         return propertyRepository.findById(id).map(this::mapToResponseDTO);
+    }
+
+    @Override
+    @Transactional
+    public PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new IllegalArgumentException("Property not found"));
+
+        // Ensure transaction when deleting images
+        propertyImageRepository.deleteByPropertyId(propertyId);
+
+        // Upload new images
+        List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
+        List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
+            PropertyImage propertyImage = new PropertyImage();
+            propertyImage.setImageUrl(url);
+            propertyImage.setProperty(property);
+            return propertyImage;
+        }).collect(Collectors.toList());
+
+
+        propertyImageRepository.saveAll(propertyImages);
+
+        return mapToResponseDTO(property);
     }
 
     @Override
@@ -100,14 +119,12 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setDescription(requestDTO.getDescription());
         property.setRoomId(requestDTO.getRoomId());
 
-        // Update category
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             property.setCategory(category);
         }
 
-        // Update location
         if (requestDTO.getLocationId() != null) {
             Location location = validateAndGetLocation(requestDTO.getLocationId());
             property.setLocation(location);
@@ -125,7 +142,12 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         propertyRepository.deleteById(id);
     }
 
-    // Pagination & Filtering Implementations
+    @Override
+    public List<PropertyResponseDTO> getAllProperties() {
+        return propertyRepository.findByIsActiveTrue()
+                .stream().map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Page<PropertyResponseDTO> getProperties(Pageable pageable) {
@@ -148,26 +170,29 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
-    public Page<PropertyResponseDTO> getPropertiesSortedByCheapestPrice(Pageable pageable) {
-        return propertyRepository.findAllSortedByCheapestPrice(pageable).map(this::mapToResponseDTO);
-    }
-
-    @Override
-    public Page<PropertyResponseDTO> getPropertiesByLocationSortedByCheapest(Long locationId, Pageable pageable) {
-        return propertyRepository.findByLocationSortedByCheapestPrice(locationId, pageable).map(this::mapToResponseDTO);
-    }
-
-    @Override
     public Page<PropertyResponseDTO> getPropertiesByCategorySortedByCheapest(Long categoryId, Pageable pageable) {
-        return propertyRepository.findByCategorySortedByCheapestPrice(categoryId, pageable).map(this::mapToResponseDTO);
+        return propertyRepository.findByCategorySortedByCheapestPrice(categoryId, pageable)
+                .map(this::mapToResponseDTO);
     }
 
     @Override
     public Page<PropertyResponseDTO> getPropertiesByLocationAndCategorySortedByCheapest(Long locationId, Long categoryId, Pageable pageable) {
-        return propertyRepository.findByLocationAndCategorySortedByCheapestPrice(locationId, categoryId, pageable).map(this::mapToResponseDTO);
+        return propertyRepository.findByLocationAndCategorySortedByCheapestPrice(locationId, categoryId, pageable)
+                .map(this::mapToResponseDTO);
     }
 
-    // Helper Method: Validate and Get Location
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesByLocationSortedByCheapest(Long locationId, Pageable pageable) {
+        return propertyRepository.findByLocationSortedByCheapestPrice(locationId, pageable)
+                .map(this::mapToResponseDTO);
+    }
+
+    @Override
+    public Page<PropertyResponseDTO> getPropertiesSortedByCheapestPrice(Pageable pageable) {
+        return propertyRepository.findAllSortedByCheapestPrice(pageable)
+                .map(this::mapToResponseDTO);
+    }
+
     private Location validateAndGetLocation(Long locationId) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new IllegalArgumentException("Location not found"));
@@ -178,7 +203,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         return location;
     }
 
-    // Helper Method: Convert Property to DTO
     private PropertyResponseDTO mapToResponseDTO(Property property) {
         PropertyResponseDTO responseDTO = new PropertyResponseDTO();
         responseDTO.setId(property.getId());
@@ -196,7 +220,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             ));
         }
 
-        // Set image URLs
         List<String> imageUrls = property.getImages() != null
                 ? property.getImages().stream().map(PropertyImage::getImageUrl).toList()
                 : new ArrayList<>();

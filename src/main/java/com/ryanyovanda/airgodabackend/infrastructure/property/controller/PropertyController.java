@@ -26,13 +26,17 @@ public class PropertyController {
         this.propertyUsecase = propertyUsecase;
     }
 
-    // ✅ Create a new property with images
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<PropertyResponseDTO> createProperty(
             @RequestPart(value = "data") String requestData,
             @RequestPart(value = "images") List<MultipartFile> images) {
 
-        // Convert JSON String to DTO
+        for (MultipartFile image : images) {
+            if (image.getSize() > 1024 * 1024) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+
         ObjectMapper objectMapper = new ObjectMapper();
         CreatePropertyRequestDTO requestDTO;
 
@@ -46,8 +50,6 @@ public class PropertyController {
         return ResponseEntity.ok(savedProperty);
     }
 
-
-    // ✅ Get paginated properties
     @GetMapping
     public ResponseEntity<Page<PropertyResponseDTO>> getAllProperties(
             @RequestParam(defaultValue = "0") int page,
@@ -58,7 +60,6 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
-    // ✅ Get a property by ID
     @GetMapping("/{id}")
     public ResponseEntity<PropertyResponseDTO> getPropertyById(@PathVariable Long id) {
         Optional<PropertyResponseDTO> property = propertyUsecase.getPropertyById(id);
@@ -66,7 +67,6 @@ public class PropertyController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ✅ Update property (excluding images)
     @PutMapping("/{id}")
     public ResponseEntity<PropertyResponseDTO> updateProperty(
             @PathVariable Long id,
@@ -76,14 +76,12 @@ public class PropertyController {
         return ResponseEntity.ok(updatedProperty);
     }
 
-    // ✅ Delete property
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProperty(@PathVariable Long id) {
         propertyUsecase.deleteProperty(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Get properties sorted by cheapest price
     @GetMapping("/sorted/cheapest")
     public ResponseEntity<Page<PropertyResponseDTO>> getPropertiesSortedByCheapestPrice(
             @RequestParam(defaultValue = "0") int page,
@@ -94,7 +92,6 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
-    // ✅ Get properties filtered by location and/or category
     @GetMapping("/filter")
     public ResponseEntity<Page<PropertyResponseDTO>> getPropertiesByFilters(
             @RequestParam(required = false) Long locationId,
@@ -116,5 +113,26 @@ public class PropertyController {
         }
 
         return ResponseEntity.ok(properties);
+    }
+
+    @DeleteMapping("/image/{imageId}")
+    public ResponseEntity<Void> deletePropertyImage(@PathVariable Long imageId) {
+        propertyUsecase.deletePropertyImage(imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/images")
+    public ResponseEntity<PropertyResponseDTO> updatePropertyImages(
+            @PathVariable Long id,
+            @RequestPart List<MultipartFile> images) {
+
+        for (MultipartFile image : images) {
+            if (image.getSize() > 1024 * 1024) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+
+        PropertyResponseDTO updatedProperty = propertyUsecase.updatePropertyImages(id, images);
+        return ResponseEntity.ok(updatedProperty);
     }
 }

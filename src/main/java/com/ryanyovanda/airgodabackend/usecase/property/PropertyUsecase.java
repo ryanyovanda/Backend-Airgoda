@@ -15,6 +15,8 @@ public interface PropertyUsecase {
     Optional<PropertyResponseDTO> getPropertyById(Long id);
     PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO);
     void deleteProperty(Long id);
+    void deletePropertyImage(Long imageId);
+    PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images);
 
     // Pagination & Filtering
     Page<PropertyResponseDTO> getProperties(Pageable pageable);

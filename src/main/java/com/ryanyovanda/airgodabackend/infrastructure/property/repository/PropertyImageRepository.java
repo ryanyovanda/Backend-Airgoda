@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PropertyImageRepository extends JpaRepository<PropertyImage, Long> {
+    void deleteByPropertyId(Long propertyId);
 }
