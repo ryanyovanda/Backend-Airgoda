@@ -5,6 +5,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.users.repository.UsersRepos
 import com.ryanyovanda.airgodabackend.usecase.auth.SendVerificationEmailUsecase;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
 
     private final UsersRepository usersRepository;
     private final JavaMailSender mailSender;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -56,7 +60,7 @@ public class SendVerificationEmailUsecaseImpl implements SendVerificationEmailUs
 
     private void sendEmail(String to, String token) {
         String subject = "Verify Your Email";
-        String verificationLink = "http://localhost:3000/verify?token=" + token;
+        String verificationLink = frontendUrl + "/verify?token=" + token; // ✅ Use env variable
 
         String body = "<html><body style=\"font-family: Arial, sans-serif; text-align: center;\">"
                 + "<div style=\"max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;\">"
