@@ -47,6 +47,10 @@ public class Property {
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 
+    @Column(length = 255)
+    private String fullAddress;
+
+
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PropertyImage> images = new ArrayList<>(); // ✅ Initialize list to avoid null errors
 

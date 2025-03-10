@@ -47,6 +47,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         Property property = new Property();
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
+        property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(true);
 
@@ -208,6 +209,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         responseDTO.setId(property.getId());
         responseDTO.setName(property.getName());
         responseDTO.setDescription(property.getDescription());
+        responseDTO.setFullAddress(property.getFullAddress());
         responseDTO.setRoomId(property.getRoomId());
         responseDTO.setIsActive(property.getIsActive());
         responseDTO.setCategoryId(property.getCategory() != null ? property.getCategory().getId() : null);

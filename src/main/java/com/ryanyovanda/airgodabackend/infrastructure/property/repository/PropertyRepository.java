@@ -16,6 +16,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     // Existing methods
     List<Property> findByIsActiveTrue();
+
     List<Property> findByLocationId(Long locationId);
     @Override
     Optional<Property> findById(Long propertyId);

@@ -18,4 +18,6 @@ public class PropertyResponseDTO {
     private Long categoryId; // New field for category name
     private LocationDTO location;
     private List<String> imageUrls;
+    private String fullAddress;
+
 }
