@@ -24,8 +24,8 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -69,8 +69,8 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Use CORS Configuration
+            .csrf(AbstractHttpConfigurer::disable) // ❌ Disable CSRF (unless needed)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Apply CORS here
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/error/**").permitAll()
                     .requestMatchers("/api/v1/auth/login").permitAll()
@@ -79,7 +79,6 @@ public class SecurityConfig {
                     .requestMatchers("/api/properties/**").permitAll()
                     .requestMatchers("/api/room-variants/**").permitAll()
                     .requestMatchers("/orders/**").permitAll()
-                    .requestMatchers("/orders").permitAll()
                     .requestMatchers("/peak-rates").permitAll()
                     .requestMatchers("/discounts").permitAll()
                     .requestMatchers("/api/v1/auth/refresh").permitAll()
@@ -116,19 +115,34 @@ public class SecurityConfig {
   }
 
   @Bean
-  public CorsFilter corsFilter() {
-    return new CorsFilter(corsConfigurationSource());
-  }
-
-  @Bean
-  public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+  public CorsConfigurationSource corsConfigurationSource() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of(frontendUrl));
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+    // ✅ Allow frontend URL from .env + localhost
+    config.setAllowedOrigins(List.of(
+            frontendUrl,
+            "http://localhost:3001",
+            "http://localhost:3000",
+            "http://0.0.0.0:3000",
+            "http://host.docker.internal:3000"
+    ));
+
+    // ✅ Allow standard HTTP methods
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+    // ✅ Allow standard headers
     config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+
+    // ✅ Allow cookies/auth headers
     config.setAllowCredentials(true);
-    source.registerCorsConfiguration("/api/**", config);
+
+    // ✅ Expose important headers
+    config.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin"));
+
+    // ✅ Apply CORS to all API routes
+    source.registerCorsConfiguration("/**", config);
+
     return source;
   }
 

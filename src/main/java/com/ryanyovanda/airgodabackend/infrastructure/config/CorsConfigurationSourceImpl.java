@@ -8,6 +8,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.context.annotation.Bean;
 
 @Configuration
 public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
@@ -20,7 +21,7 @@ public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
 
     // Allowed frontend origins (use ENV variable)
-    corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
+    corsConfiguration.setAllowedOrigins(List.of( // ✅ Use setAllowedOrigins() for better security
             "http://localhost:3001",
             "http://localhost:3000",
             "http://0.0.0.0:3000",
@@ -42,4 +43,5 @@ public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
 
     return corsConfiguration;
   }
+
 }
