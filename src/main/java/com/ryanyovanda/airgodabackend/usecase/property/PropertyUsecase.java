@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PropertyUsecase {
+    List<PropertyResponseDTO> getPropertiesByTenant(Long tenantId);
     PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images);
     List<PropertyResponseDTO> getAllProperties();
     Optional<PropertyResponseDTO> getPropertyById(Long id);

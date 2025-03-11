@@ -15,5 +15,6 @@ public class CreatePropertyRequestDTO {
     private Long locationId;
     private List<String> imageUrls;
     private String fullAddress;
+    private Long tenantId;
 
 }

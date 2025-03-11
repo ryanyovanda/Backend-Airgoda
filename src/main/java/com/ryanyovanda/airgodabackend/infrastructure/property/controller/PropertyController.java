@@ -67,6 +67,13 @@ public class PropertyController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/tenant")
+    public ResponseEntity<List<PropertyResponseDTO>> getTenantProperties(@RequestParam Long tenantId) {
+        List<PropertyResponseDTO> properties = propertyUsecase.getPropertiesByTenant(tenantId);
+        return ResponseEntity.ok(properties);
+    }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<PropertyResponseDTO> updateProperty(
             @PathVariable Long id,

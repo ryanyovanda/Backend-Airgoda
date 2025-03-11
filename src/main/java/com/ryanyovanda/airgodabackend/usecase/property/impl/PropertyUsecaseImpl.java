@@ -88,6 +88,32 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
+    public List<PropertyResponseDTO> getPropertiesByTenant(Long tenantId) {
+        List<Property> properties = propertyRepository.findByOwnerId(tenantId);
+
+        return properties.stream().map(property -> {
+            PropertyResponseDTO dto = new PropertyResponseDTO();
+            dto.setId(property.getId());
+            dto.setName(property.getName());
+            dto.setDescription(property.getDescription());
+            dto.setIsActive(property.getIsActive());
+            dto.setCreatedAt(property.getCreatedAt());
+            dto.setCategoryId(property.getCategory().getId()); // Assuming category exists
+            dto.setLocation(new LocationDTO(
+                    property.getLocation().getId(),
+                    property.getLocation().getName(),
+                    property.getLocation().getType().name()
+            ));
+            dto.setImageUrls(property.getImages().stream().map(PropertyImage::getImageUrl).toList()); // Assuming images exist
+            dto.setFullAddress(property.getFullAddress());
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+
+
+    @Override
     @Transactional
     public PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images) {
         Property property = propertyRepository.findById(propertyId)
@@ -212,7 +238,9 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         responseDTO.setFullAddress(property.getFullAddress());
         responseDTO.setRoomId(property.getRoomId());
         responseDTO.setIsActive(property.getIsActive());
+        responseDTO.setTenantId(property.getTenant().getId());
         responseDTO.setCategoryId(property.getCategory() != null ? property.getCategory().getId() : null);
+
 
         if (property.getLocation() != null) {
             responseDTO.setLocation(new LocationDTO(

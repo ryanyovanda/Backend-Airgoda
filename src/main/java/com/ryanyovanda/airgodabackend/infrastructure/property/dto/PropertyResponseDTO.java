@@ -19,5 +19,6 @@ public class PropertyResponseDTO {
     private LocationDTO location;
     private List<String> imageUrls;
     private String fullAddress;
+    private Long tenantId;
 
 }

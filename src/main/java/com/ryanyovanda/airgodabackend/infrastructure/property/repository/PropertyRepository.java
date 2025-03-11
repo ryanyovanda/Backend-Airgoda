@@ -17,6 +17,10 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     // Existing methods
     List<Property> findByIsActiveTrue();
 
+    @Query("SELECT p FROM Property p WHERE p.tenant.id = :tenantId")
+    List<Property> findByOwnerId(@Param("tenantId") Long tenantId);
+
+
     List<Property> findByLocationId(Long locationId);
     @Override
     Optional<Property> findById(Long propertyId);
@@ -26,6 +30,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     Page<Property> findByLocationIdAndIsActiveTrue(Long locationId, Pageable pageable);
     Page<Property> findByCategoryIdAndIsActiveTrue(Long categoryId, Pageable pageable);
     Page<Property> findByLocationIdAndCategoryIdAndIsActiveTrue(Long locationId, Long categoryId, Pageable pageable);
+
 
     // Sorting by cheapest available room price
     @Query("""
