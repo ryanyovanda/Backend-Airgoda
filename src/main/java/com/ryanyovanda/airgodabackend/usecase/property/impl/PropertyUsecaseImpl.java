@@ -253,9 +253,17 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         responseDTO.setFullAddress(property.getFullAddress());
         responseDTO.setRoomId(property.getRoomId());
         responseDTO.setIsActive(property.getIsActive());
-        responseDTO.setTenantId(property.getTenant().getId());
-        responseDTO.setCategoryId(property.getCategory() != null ? property.getCategory().getId() : null);
 
+        // ✅ Null-safe handling for tenant
+        if (property.getTenant() != null) {
+            responseDTO.setTenantId(property.getTenant().getId());
+        } else {
+            responseDTO.setTenantId(null);  // Avoid NullPointerException
+        }
+
+        if (property.getCategory() != null) {
+            responseDTO.setCategoryId(property.getCategory().getId());
+        }
 
         if (property.getLocation() != null) {
             responseDTO.setLocation(new LocationDTO(
@@ -268,7 +276,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         List<String> imageUrls = property.getImages() != null
                 ? property.getImages().stream().map(PropertyImage::getImageUrl).toList()
                 : new ArrayList<>();
-
         responseDTO.setImageUrls(imageUrls);
 
         return responseDTO;
