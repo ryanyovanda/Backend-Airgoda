@@ -87,7 +87,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/users/resend-verification").permitAll()
                     .requestMatchers("/api/v1/users/**").permitAll()
                     .requestMatchers("/categories").permitAll()
-                    .anyRequest().authenticated()
+                    .requestMatchers("/api/locations").permitAll()
+//                    .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .oauth2ResourceServer(oauth2 -> {

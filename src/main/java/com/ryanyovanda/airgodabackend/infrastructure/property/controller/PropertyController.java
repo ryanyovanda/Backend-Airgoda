@@ -95,23 +95,27 @@ public class PropertyController {
 
     @GetMapping("/tenant")
     public ResponseEntity<List<PropertyResponseDTO>> getTenantProperties() {
-        // Get authenticated user
+        // Extract user email from JWT claims
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("🔍 Principal: " + principal);
 
-        if (!(principal instanceof UserDetails)) {
+        if (!(principal instanceof org.springframework.security.oauth2.jwt.Jwt jwt)) {
+            System.out.println("❌ User not authenticated!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        UserDetails userDetails = (UserDetails) principal;
-        String email = userDetails.getUsername();
+        String email = jwt.getClaim("sub"); // Extract email from JWT
+        System.out.println("✅ Authenticated User Email: " + email);
 
-        // Find authenticated user
+        // Find authenticated user in the database
         User authenticatedUser = usersRepository.findByEmailContainsIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<PropertyResponseDTO> properties = propertyUsecase.getPropertiesByTenant(authenticatedUser.getId());
         return ResponseEntity.ok(properties);
     }
+
+
 
     @PutMapping("/{id}")
     public ResponseEntity<PropertyResponseDTO> updateProperty(

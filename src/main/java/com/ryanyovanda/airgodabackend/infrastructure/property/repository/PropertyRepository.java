@@ -17,7 +17,10 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     // Existing methods
     List<Property> findByIsActiveTrue();
 
-    @Query("SELECT p FROM Property p WHERE p.tenant.id = :tenantId")
+//    @Query("SELECT p FROM Property p WHERE p.tenant.id = :tenantId")
+//    List<Property> findByOwnerId(@Param("tenantId") Long tenantId);
+
+    @Query("SELECT p FROM Property p LEFT JOIN FETCH p.category WHERE p.tenant.id = :tenantId")
     List<Property> findByOwnerId(@Param("tenantId") Long tenantId);
 
 

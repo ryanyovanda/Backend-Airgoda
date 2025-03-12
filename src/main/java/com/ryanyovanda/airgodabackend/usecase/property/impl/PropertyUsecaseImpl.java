@@ -113,7 +113,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             dto.setDescription(property.getDescription());
             dto.setIsActive(property.getIsActive());
             dto.setCreatedAt(property.getCreatedAt());
-            dto.setCategoryId(property.getCategory().getId()); // Assuming category exists
+            dto.setCategoryId(property.getCategory() != null ? property.getCategory().getId() : null);
             dto.setLocation(new LocationDTO(
                     property.getLocation().getId(),
                     property.getLocation().getName(),
