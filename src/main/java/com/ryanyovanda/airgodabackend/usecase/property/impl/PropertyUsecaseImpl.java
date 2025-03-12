@@ -5,6 +5,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreateProperty
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.LocationDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyResponseDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.*;
+import com.ryanyovanda.airgodabackend.infrastructure.users.repository.UsersRepository;
 import com.ryanyovanda.airgodabackend.usecase.cloudinary.CloudinaryUsecase;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyUsecase;
 import jakarta.transaction.Transactional;
@@ -27,6 +28,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     private final LocationRepository locationRepository;
     private final PropertyImageRepository propertyImageRepository;
     private final CloudinaryUsecase cloudinaryUsecase;
+    private final UsersRepository usersRepository;
 
     @Autowired
     public PropertyUsecaseImpl(
@@ -34,12 +36,14 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             PropertyCategoryRepository propertyCategoryRepository,
             LocationRepository locationRepository,
             PropertyImageRepository propertyImageRepository,
-            CloudinaryUsecase cloudinaryUsecase) {
+            CloudinaryUsecase cloudinaryUsecase,
+            UsersRepository usersRepository) {
         this.propertyRepository = propertyRepository;
         this.propertyCategoryRepository = propertyCategoryRepository;
         this.locationRepository = locationRepository;
         this.propertyImageRepository = propertyImageRepository;
         this.cloudinaryUsecase = cloudinaryUsecase;
+        this.usersRepository = usersRepository;
     }
 
     @Override
@@ -50,6 +54,15 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(true);
+
+        // ✅ Fetch and set tenant
+        if (requestDTO.getTenantId() != null) {
+            User tenant = usersRepository.findById(requestDTO.getTenantId())
+                    .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+            property.setTenant(tenant);
+        } else {
+            throw new IllegalArgumentException("Tenant must be specified");
+        }
 
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
@@ -64,6 +77,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
         Property savedProperty = propertyRepository.save(property);
 
+        // Handle image uploads
         List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
         List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
             PropertyImage propertyImage = new PropertyImage();
@@ -76,6 +90,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
         return mapToResponseDTO(savedProperty);
     }
+
 
     @Override
     public void deletePropertyImage(Long imageId) {
