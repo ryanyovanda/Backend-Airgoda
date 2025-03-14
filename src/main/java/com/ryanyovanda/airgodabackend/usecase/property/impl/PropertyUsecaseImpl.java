@@ -53,7 +53,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setDescription(requestDTO.getDescription());
         property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
-        property.setIsActive(true);
+        property.setIsActive(requestDTO.getIsActive());
 
         // ✅ Fetch and set tenant
         if (requestDTO.getTenantId() != null) {
@@ -160,6 +160,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
         property.setRoomId(requestDTO.getRoomId());
+        property.setIsActive(requestDTO.getIsActive());
 
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
@@ -273,10 +274,23 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
             ));
         }
 
-        List<String> imageUrls = property.getImages() != null
-                ? property.getImages().stream().map(PropertyImage::getImageUrl).toList()
-                : new ArrayList<>();
-        responseDTO.setImageUrls(imageUrls);
+        List<Long> imageIds = new ArrayList<>();
+        List<String> imageUrls = new ArrayList<>();
+
+        if (property.getImages() != null) {
+            imageIds = property.getImages().stream()
+                    .map(PropertyImage::getId)
+                    .toList();
+
+            imageUrls = property.getImages().stream()
+                    .map(PropertyImage::getImageUrl)
+                    .toList();
+        }
+
+        responseDTO.setImageIds(imageIds); // ✅ Expecting List<Long>
+        responseDTO.setImageUrls(imageUrls); // ✅ Expecting List<String>
+
+
 
         return responseDTO;
     }
