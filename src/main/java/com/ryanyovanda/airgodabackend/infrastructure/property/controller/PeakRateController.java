@@ -2,6 +2,8 @@ package com.ryanyovanda.airgodabackend.infrastructure.property.controller;
 
 import com.ryanyovanda.airgodabackend.entity.PeakRate;
 import com.ryanyovanda.airgodabackend.entity.RoomVariant;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PeakRateResponseDTO;
+import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PeakRateRequestDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.order.repository.PeakRateRepository;
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.RoomVariantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/peak-rates")
@@ -25,27 +28,46 @@ public class PeakRateController {
     @Autowired
     private RoomVariantRepository roomVariantRepository;
 
-    // ✅ Add Peak Rate with Logging & Validation
     @PostMapping
     @Transactional
-    public ResponseEntity<?> addPeakRate(@RequestBody PeakRate peakRate) {
+    public ResponseEntity<?> addPeakRate(@RequestBody PeakRateRequestDTO peakRateRequest) {
         try {
-            logger.info("🔍 Received Peak Rate Request: " + peakRate.toString());
+            logger.info("🔍 Received Peak Rate Request: " + peakRateRequest);
 
-            // 🔥 Pastikan `roomVariant` valid
-            Long roomVariantId = peakRate.getRoomVariant().getId();
+            // ✅ Extract `roomVariantId` from DTO
+            Long roomVariantId = peakRateRequest.getRoomVariantId();
+
+            if (roomVariantId == null) {
+                logger.warning("❌ Error: `roomVariantId` is missing.");
+                return ResponseEntity.badRequest().body("Error: `roomVariantId` is required.");
+            }
+
+            // ✅ Fetch Room Variant from Database
             Optional<RoomVariant> roomVariantOpt = roomVariantRepository.findById(roomVariantId);
-
             if (roomVariantOpt.isEmpty()) {
                 logger.warning("❌ Error: Room Variant ID " + roomVariantId + " not found.");
                 return ResponseEntity.badRequest().body("Error: Room Variant with ID " + roomVariantId + " not found.");
             }
 
+            // ✅ Create Peak Rate Object
+            PeakRate peakRate = new PeakRate();
             peakRate.setRoomVariant(roomVariantOpt.get());
+            peakRate.setStartDate(peakRateRequest.getStartDate());
+            peakRate.setEndDate(peakRateRequest.getEndDate());
+            peakRate.setAdditionalPrice(peakRateRequest.getAdditionalPrice());
 
-            // ✅ Simpan Peak Rate
+            // ✅ Check for existing peak rate within the same date range
+            boolean exists = peakRateRepository.existsByRoomVariantIdAndDateRange(
+                    roomVariantId, peakRateRequest.getStartDate(), peakRateRequest.getEndDate());
+
+            if (exists) {
+                logger.warning("⚠️ Peak Rate already exists for Room Variant ID: " + roomVariantId);
+                return ResponseEntity.badRequest().body("Peak Rate already exists for the given date range.");
+            }
+
+            // ✅ Save to Database
             PeakRate savedPeakRate = peakRateRepository.save(peakRate);
-            logger.info("✅ Peak Rate saved successfully: " + savedPeakRate.toString());
+            logger.info("✅ Peak Rate saved successfully: " + savedPeakRate);
 
             return ResponseEntity.ok("Peak Rate added successfully.");
         } catch (Exception e) {
@@ -54,9 +76,22 @@ public class PeakRateController {
         }
     }
 
-    // ✅ Get All Peak Rates
+
     @GetMapping
-    public ResponseEntity<List<PeakRate>> getAllPeakRates() {
-        return ResponseEntity.ok(peakRateRepository.findAll());
+    public ResponseEntity<List<PeakRateResponseDTO>> getAllPeakRates() {
+        List<PeakRateResponseDTO> response = peakRateRepository.findAll()
+                .stream()
+                .map(peakRate -> {
+                    PeakRateResponseDTO dto = new PeakRateResponseDTO();
+                    dto.setId(peakRate.getId());
+                    dto.setRoomVariantId(peakRate.getRoomVariant().getId());
+                    dto.setStartDate(peakRate.getStartDate());
+                    dto.setEndDate(peakRate.getEndDate());
+                    dto.setAdditionalPrice(peakRate.getAdditionalPrice());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
+
 }

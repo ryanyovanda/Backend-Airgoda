@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -41,58 +41,53 @@ public class BookingUsecaseImpl implements BookingUsecase {
         for (OrderItem item : order.getOrderItems()) {
             Long roomVariantId = item.getRoomVariant().getId();
 
-            // ✅ Ensure RoomVariant exists
             Optional<RoomVariant> optionalRoomVariant = roomVariantRepository.findById(roomVariantId);
             if (optionalRoomVariant.isEmpty()) {
                 throw new IllegalArgumentException("Room Variant with ID " + roomVariantId + " does not exist.");
             }
             RoomVariant roomVariant = optionalRoomVariant.get();
 
-            // ✅ Ensure base price is not null
-            BigDecimal finalPrice = roomVariant.getPrice();
-            if (finalPrice == null) {
-                finalPrice = BigDecimal.ZERO;
-            }
+            BigDecimal totalItemPrice = BigDecimal.ZERO;
+            LocalDate currentDate = item.getStartDate();
 
-            // ✅ Apply discount (if applicable)
-            Discount discount = discountRepository.findValidDiscount(roomVariant.getId(), item.getStartDate(), item.getEndDate());
-            if (discount != null) {
-                if (discount.getDiscountType().equalsIgnoreCase("percentage")) {
-                    finalPrice = finalPrice.subtract(finalPrice.multiply(discount.getValue().divide(BigDecimal.valueOf(100))));
-                } else {
-                    finalPrice = finalPrice.subtract(discount.getValue());
+            while (!currentDate.isEqual(item.getEndDate())) {  // Loop through each night
+                BigDecimal nightlyPrice = roomVariant.getPrice();
+
+                // Apply Discount (if any)
+                Discount discount = discountRepository.findValidDiscount(roomVariant.getId(), currentDate, currentDate);
+                if (discount != null) {
+                    if (discount.getDiscountType().equalsIgnoreCase("percentage")) {
+                        nightlyPrice = nightlyPrice.subtract(nightlyPrice.multiply(discount.getValue().divide(BigDecimal.valueOf(100))));
+                    } else {
+                        nightlyPrice = nightlyPrice.subtract(discount.getValue());
+                    }
                 }
+
+                // Apply Peak Rate (if any)
+                PeakRate peakRate = peakRateRepository.findValidPeakRate(roomVariant.getId(), currentDate, currentDate);
+                if (peakRate != null) {
+                    nightlyPrice = nightlyPrice.add(peakRate.getAdditionalPrice());
+                }
+
+                // Ensure the price is never negative
+                if (nightlyPrice.compareTo(BigDecimal.ZERO) < 0) {
+                    nightlyPrice = BigDecimal.ZERO;
+                }
+
+                // Add the final calculated price for this night
+                totalItemPrice = totalItemPrice.add(nightlyPrice);
+                currentDate = currentDate.plusDays(1); // Move to the next day
             }
 
-            // ✅ Apply peak rate (if applicable)
-            PeakRate peakRate = peakRateRepository.findValidPeakRate(roomVariant.getId(), item.getStartDate(), item.getEndDate());
-            if (peakRate != null) {
-                finalPrice = finalPrice.add(peakRate.getAdditionalPrice());
-            }
-
-            // ✅ Ensure finalPrice is never negative
-            if (finalPrice.compareTo(BigDecimal.ZERO) < 0) {
-                finalPrice = BigDecimal.ZERO;
-            }
-
-            // ✅ Calculate the number of nights (at least 1)
-            long nights = ChronoUnit.DAYS.between(item.getStartDate(), item.getEndDate());
-            if (nights < 1) nights = 1;
-
-            // ✅ Calculate total price per item (HANYA BERDASARKAN LAMA MENGINAP)
-            BigDecimal totalItemPrice = finalPrice.multiply(BigDecimal.valueOf(nights));
-
-            // ✅ Set the calculated total price
+            // Store the calculated total price
             item.setTotalPrice(totalItemPrice);
-
-            // ✅ Update total order price
             totalOrderPrice = totalOrderPrice.add(totalItemPrice);
 
-            // ✅ Save order item
+            // Save order item
             orderItemRepository.save(item);
         }
 
-        // ✅ Set total price to order before saving
+        // Set total price to order before saving
         order.setTotalPrice(totalOrderPrice);
         orderRepository.save(order);
     }
