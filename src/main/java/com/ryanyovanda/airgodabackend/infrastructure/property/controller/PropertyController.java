@@ -165,6 +165,15 @@ public class PropertyController {
         return ResponseEntity.ok(properties);
     }
 
+    @GetMapping("/search")
+    public Page<PropertyResponseDTO> searchProperties(
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword,
+            Pageable pageable) {
+        return propertyUsecase.searchProperties(locationId, categoryId, keyword, pageable);
+    }
+
     @DeleteMapping("/image/{imageId}")
     public ResponseEntity<Void> deletePropertyImage(@PathVariable Long imageId) {
         propertyUsecase.deletePropertyImage(imageId);

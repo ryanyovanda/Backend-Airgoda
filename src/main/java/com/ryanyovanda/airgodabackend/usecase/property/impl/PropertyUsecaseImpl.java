@@ -192,6 +192,14 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
                 .collect(Collectors.toList());
     }
 
+
+    @Override
+    public Page<PropertyResponseDTO> searchProperties(Long locationId, Long categoryId, String keyword, Pageable pageable) {
+        return propertyRepository.searchProperties(locationId, categoryId, keyword, pageable)
+                .map(this::mapToResponseDTO);
+    }
+
+
     @Override
     public Page<PropertyResponseDTO> getProperties(Pageable pageable) {
         return propertyRepository.findByIsActiveTrue(pageable).map(this::mapToResponseDTO);

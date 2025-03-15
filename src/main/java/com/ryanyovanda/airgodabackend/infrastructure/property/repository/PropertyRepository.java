@@ -34,6 +34,18 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     Page<Property> findByCategoryIdAndIsActiveTrue(Long categoryId, Pageable pageable);
     Page<Property> findByLocationIdAndCategoryIdAndIsActiveTrue(Long locationId, Long categoryId, Pageable pageable);
 
+    @Query("SELECT p FROM Property p WHERE (:locationId IS NULL OR p.location.id = :locationId) " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+            "AND (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))" )
+    Page<Property> searchProperties(
+            @Param("locationId") Long locationId,
+            @Param("categoryId") Long categoryId,
+            @Param("keyword") String keyword,
+            Pageable pageable);
+
+//    @Query("SELECT p FROM Property p ORDER BY p.price ASC")
+//
+//    Page<Property> findAllSortedByCheapestPrice(Pageable pageable);
 
     // Sorting by cheapest available room price
     @Query("""

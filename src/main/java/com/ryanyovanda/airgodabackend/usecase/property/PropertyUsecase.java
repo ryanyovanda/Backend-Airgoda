@@ -20,6 +20,8 @@ public interface PropertyUsecase {
     PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images);
 
     // Pagination & Filtering
+    Page<PropertyResponseDTO> searchProperties(Long locationId, Long categoryId, String keyword, Pageable pageable);
+
     Page<PropertyResponseDTO> getProperties(Pageable pageable);
     Page<PropertyResponseDTO> getPropertiesByLocation(Long locationId, Pageable pageable);
     Page<PropertyResponseDTO> getPropertiesByCategory(Long categoryId, Pageable pageable);
