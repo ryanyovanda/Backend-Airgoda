@@ -26,6 +26,10 @@ public class AuthController {
     private final LogoutUsecase logoutUsecase;
     private final GetUserAuthDetailsUsecase userAuthDetailsUsecase;
     private final JwtUtil jwtUtil;
+    private final ForgotPasswordUsecase forgotPasswordUsecase;
+    private final VerifyResetTokenUsecase verifyResetTokenUsecase;
+    private final ChangePasswordUsecase changePasswordUsecase;
+
 
     public AuthController(
             GoogleAuthUsecase googleAuthUsecase,
@@ -33,7 +37,11 @@ public class AuthController {
             TokenRefreshUsecase tokenRefreshUsecase,
             LogoutUsecase logoutUsecase,
             GetUserAuthDetailsUsecase userAuthDetailsUsecase,
-            JwtUtil jwtUtil
+            JwtUtil jwtUtil,
+            ForgotPasswordUsecase forgotPasswordUsecase,
+            VerifyResetTokenUsecase verifyResetTokenUsecase,
+            ChangePasswordUsecase changePasswordUsecase
+
     ) {
         this.googleAuthUsecase = googleAuthUsecase;
         this.loginUsecase = loginUsecase;
@@ -41,6 +49,9 @@ public class AuthController {
         this.logoutUsecase = logoutUsecase;
         this.userAuthDetailsUsecase = userAuthDetailsUsecase;
         this.jwtUtil = jwtUtil;
+        this.forgotPasswordUsecase = forgotPasswordUsecase;
+        this.verifyResetTokenUsecase = verifyResetTokenUsecase;
+        this.changePasswordUsecase = changePasswordUsecase;
     }
 
     @PostMapping("/login")
@@ -86,4 +97,35 @@ public class AuthController {
         String googleToken = requestBody.get("token");
         return Response.successfulResponse("Login successful", loginUsecase.authenticateWithGoogle(googleToken));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body("Email is required.");
+        }
+        forgotPasswordUsecase.forgotPassword(email);
+        return ResponseEntity.ok("Password reset email sent.");
+    }
+
+
+    @GetMapping("/verify-reset-token")
+    public ResponseEntity<Boolean> verifyResetToken(@RequestParam String token) {
+        boolean isValid = verifyResetTokenUsecase.verifyResetToken(token);
+        return isValid ? ResponseEntity.ok(true) : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+
+        if (token == null || newPassword == null) {
+            return ResponseEntity.badRequest().body("Missing required fields.");
+        }
+
+        changePasswordUsecase.changePassword(token, newPassword);
+        return ResponseEntity.ok("Password changed successfully.");
+    }
+
 }

@@ -74,6 +74,9 @@ public class User {
   @Column(name = "token_expiry")
   private OffsetDateTime tokenExpiry;
 
+  @Column(name = "reset_token", unique = true)
+  private String resetToken;
+
   @PrePersist
   protected void onCreate() {
     createdAt = OffsetDateTime.now();

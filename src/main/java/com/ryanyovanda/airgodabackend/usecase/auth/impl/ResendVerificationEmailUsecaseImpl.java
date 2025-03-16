@@ -52,6 +52,6 @@ public class ResendVerificationEmailUsecaseImpl implements ResendVerificationEma
         usersRepository.save(user);
 
         // ✅ Send new verification email
-        sendVerificationEmailUsecase.sendVerificationEmail(user.getEmail());
+        sendVerificationEmailUsecase.sendVerificationEmail(user.getEmail(), token);
     }
 }
