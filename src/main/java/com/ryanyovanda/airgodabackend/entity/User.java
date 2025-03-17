@@ -42,6 +42,9 @@ public class User {
   @Column(name = "profile_picture_url", length = 100)
   private String profilePictureUrl;
 
+  @Column(name = "image_url")
+  private String imageUrl;
+
   @ColumnDefault("false")
   @Column(name = "is_onboarding_finished", nullable = false)
   private Boolean isOnboardingFinished = false;
