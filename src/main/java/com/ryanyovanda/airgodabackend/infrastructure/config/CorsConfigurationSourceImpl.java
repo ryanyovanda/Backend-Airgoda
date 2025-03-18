@@ -20,25 +20,20 @@ public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
   public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-    // Allowed frontend origins (use ENV variable)
-    corsConfiguration.setAllowedOrigins(List.of( // ✅ Use setAllowedOrigins() for better security
+    corsConfiguration.setAllowedOrigins(List.of(
             "http://localhost:3001",
             "http://localhost:3000",
             "http://0.0.0.0:3000",
             "http://host.docker.internal:3000",
-            frontendUrl // ✅ Fetch frontend URL from environment variable
+            frontendUrl
     ));
 
-    // Allowed HTTP methods
     corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-    // Allow credentials (cookies, authorization headers, etc.)
     corsConfiguration.setAllowCredentials(true);
 
-    // Allowed headers
     corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
 
-    // Exposed headers
     corsConfiguration.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin"));
 
     return corsConfiguration;

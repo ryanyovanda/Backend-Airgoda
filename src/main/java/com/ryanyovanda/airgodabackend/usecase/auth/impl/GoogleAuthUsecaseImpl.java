@@ -14,7 +14,7 @@ import java.util.Collections;
 
 @Service
 public class GoogleAuthUsecaseImpl implements GoogleAuthUsecase {
-    @Value("${google.clientId}") // Load from application.properties
+    @Value("${google.clientId}")
     private String googleClientId;
 
     @Override

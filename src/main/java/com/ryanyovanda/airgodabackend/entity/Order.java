@@ -18,34 +18,33 @@ import java.util.List;
 @Table(name = "\"order\"")
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ✅ Ensure ID is auto-generated
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id", nullable = false)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // ✅ Ensure user_id is NOT NULL
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @NotNull
     @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
-    private BigDecimal totalPrice = BigDecimal.ZERO; // ✅ Default to 0 to prevent null errors
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @ColumnDefault("false")
     @Column(name = "is_paid", nullable = false)
-    private Boolean isPaid = false; // ✅ Default to false
+    private Boolean isPaid = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt; // ✅ Auto-generate on creation
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt; // ✅ Auto-update on modification
+    private Instant updatedAt;
 
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    // ✅ ADD RELATIONSHIP TO ORDER ITEMS
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 }

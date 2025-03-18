@@ -40,7 +40,7 @@ public class UploadUserImageUsecaseImpl implements UploadUserImageUsecase {
             throw new IllegalArgumentException("Invalid file type. Allowed: jpg, jpeg, png, gif.");
         }
 
-        if (file.getSize() > 1048576) { // 1MB limit
+        if (file.getSize() > 1048576) {
             throw new IllegalArgumentException("File size exceeds the 1MB limit.");
         }
 

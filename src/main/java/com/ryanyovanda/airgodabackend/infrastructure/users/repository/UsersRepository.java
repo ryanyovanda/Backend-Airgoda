@@ -17,9 +17,6 @@ public interface UsersRepository extends JpaRepository<User, Long> {
   void updateUserImage(@Param("userId") Long userId, @Param("imageUrl") String imageUrl);
 
   Optional<User> findByEmailContainsIgnoreCase(String email);
-
-
-  // ✅ Find user by verification token
   Optional<User> findByVerificationToken(String verificationToken);
   Optional<User> findByResetToken(String resetToken);
 }

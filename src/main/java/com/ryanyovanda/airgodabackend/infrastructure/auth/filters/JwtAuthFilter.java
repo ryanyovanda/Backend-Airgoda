@@ -42,7 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String token = authHeader.substring(7); // Remove "Bearer "
+        final String token = authHeader.substring(7);
         Claims claims;
 
         try {

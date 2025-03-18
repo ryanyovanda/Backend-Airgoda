@@ -50,10 +50,9 @@ public class BookingUsecaseImpl implements BookingUsecase {
             BigDecimal totalItemPrice = BigDecimal.ZERO;
             LocalDate currentDate = item.getStartDate();
 
-            while (!currentDate.isEqual(item.getEndDate())) {  // Loop through each night
+            while (!currentDate.isEqual(item.getEndDate())) {
                 BigDecimal nightlyPrice = roomVariant.getPrice();
 
-                // Apply Discount (if any)
                 Discount discount = discountRepository.findValidDiscount(roomVariant.getId(), currentDate, currentDate);
                 if (discount != null) {
                     if (discount.getDiscountType().equalsIgnoreCase("percentage")) {
@@ -63,31 +62,25 @@ public class BookingUsecaseImpl implements BookingUsecase {
                     }
                 }
 
-                // Apply Peak Rate (if any)
                 PeakRate peakRate = peakRateRepository.findValidPeakRate(roomVariant.getId(), currentDate, currentDate);
                 if (peakRate != null) {
                     nightlyPrice = nightlyPrice.add(peakRate.getAdditionalPrice());
                 }
 
-                // Ensure the price is never negative
                 if (nightlyPrice.compareTo(BigDecimal.ZERO) < 0) {
                     nightlyPrice = BigDecimal.ZERO;
                 }
 
-                // Add the final calculated price for this night
                 totalItemPrice = totalItemPrice.add(nightlyPrice);
-                currentDate = currentDate.plusDays(1); // Move to the next day
+                currentDate = currentDate.plusDays(1);
             }
 
-            // Store the calculated total price
             item.setTotalPrice(totalItemPrice);
             totalOrderPrice = totalOrderPrice.add(totalItemPrice);
 
-            // Save order item
             orderItemRepository.save(item);
         }
 
-        // Set total price to order before saving
         order.setTotalPrice(totalOrderPrice);
         orderRepository.save(order);
     }

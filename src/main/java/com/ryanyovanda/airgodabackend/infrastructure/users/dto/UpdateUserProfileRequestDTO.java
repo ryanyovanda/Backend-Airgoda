@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateUserProfileRequestDTO {
     private String name;
-    private String email;  // If other profile fields are editable
+    private String email;
     private String profilePictureUrl;
 }

@@ -27,7 +27,7 @@ public class UserImageController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication.getPrincipal() instanceof Jwt jwt) {
-            String authenticatedEmail = jwt.getClaim("sub"); // Extract email from JWT claims
+            String authenticatedEmail = jwt.getClaim("sub");
             return usersRepository.findById(userId)
                     .map(user -> user.getEmail().equals(authenticatedEmail))
                     .orElse(false);

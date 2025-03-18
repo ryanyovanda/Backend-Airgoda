@@ -41,7 +41,6 @@ public class TokenBlacklist extends OncePerRequestFilter {
         }
       }
 
-      // Get from headers instead of cookies
       var header = request.getHeader("Authorization");
       if (header != null) {
         return header.replace("Bearer ", "");

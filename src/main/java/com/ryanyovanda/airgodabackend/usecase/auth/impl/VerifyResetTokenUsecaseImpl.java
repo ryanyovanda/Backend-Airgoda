@@ -26,18 +26,18 @@ public class VerifyResetTokenUsecaseImpl implements VerifyResetTokenUsecase {
         Optional<User> userOptional = usersRepository.findByResetToken(token);
 
         if (userOptional.isEmpty()) {
-            logger.warn("❌ Invalid or non-existent reset token: {}", token);
+            logger.warn(" Invalid or non-existent reset token: {}", token);
             return false;
         }
 
         User user = userOptional.get();
 
         if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(OffsetDateTime.now())) {
-            logger.warn("❌ Expired reset token for user: {}", user.getEmail());
+            logger.warn(" Expired reset token for user: {}", user.getEmail());
             return false;
         }
 
-        logger.info("✅ Valid reset token verified for user: {}", user.getEmail());
+        logger.info(" Valid reset token verified for user: {}", user.getEmail());
         return true;
     }
 }

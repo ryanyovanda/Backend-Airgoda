@@ -31,26 +31,26 @@ public class ChangePasswordUsecaseImpl implements ChangePasswordUsecase {
         Optional<User> userOptional = usersRepository.findByResetToken(token);
 
         if (userOptional.isEmpty()) {
-            logger.warn("❌ Invalid or non-existent reset token: {}", token);
+            logger.warn(" Invalid or non-existent reset token: {}", token);
             throw new IllegalArgumentException("Invalid reset token.");
         }
 
         User user = userOptional.get();
 
         if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(OffsetDateTime.now())) {
-            logger.warn("❌ Expired reset token for user: {}", user.getEmail());
+            logger.warn(" Expired reset token for user: {}", user.getEmail());
             throw new IllegalStateException("Reset token has expired.");
         }
 
-        // Hash and update password
+
         String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
 
-        // Remove reset token after successful password change
+
         user.setResetToken(null);
         user.setTokenExpiry(null);
 
         usersRepository.save(user);
-        logger.info("✅ Password changed successfully for user: {}", user.getEmail());
+        logger.info(" Password changed successfully for user: {}", user.getEmail());
     }
 }

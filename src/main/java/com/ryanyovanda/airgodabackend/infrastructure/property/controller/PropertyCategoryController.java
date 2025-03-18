@@ -4,6 +4,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreateProperty
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.PropertyCategoryResponseDTO;
 import com.ryanyovanda.airgodabackend.usecase.property.PropertyCategoryUsecase;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class PropertyCategoryController {
     public PropertyCategoryController(PropertyCategoryUsecase propertyCategoryUsecase) {
         this.propertyCategoryUsecase = propertyCategoryUsecase;
     }
-
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @PostMapping
     public ResponseEntity<PropertyCategoryResponseDTO> createCategory(@RequestBody CreatePropertyCategoryRequestDTO requestDTO) {
         return ResponseEntity.ok(propertyCategoryUsecase.createCategory(requestDTO));

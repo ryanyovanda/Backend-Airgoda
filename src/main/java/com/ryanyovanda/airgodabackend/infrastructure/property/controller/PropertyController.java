@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -32,48 +33,46 @@ public class PropertyController {
         this.propertyUsecase = propertyUsecase;
         this.usersRepository = userRepository;
     }
-
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<PropertyResponseDTO> createProperty(
             @RequestPart(value = "data") String requestData,
             @RequestPart(value = "images") List<MultipartFile> images) {
 
-        // Get authenticated user from JWT token in SecurityContext
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         if (!(principal instanceof org.springframework.security.oauth2.jwt.Jwt)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
         org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) principal;
-        String email = jwt.getClaim("sub"); // Extract email or username from JWT claims
+        String email = jwt.getClaim("sub");
 
-        // Fetch the authenticated user from the database
         User authenticatedUser = usersRepository.findByEmailContainsIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Validate images
+        List<String> allowedTypes = List.of("image/jpeg", "image/png", "image/gif", "image/jpg");
+
         for (MultipartFile image : images) {
-            if (image.getSize() > 1024 * 1024) {
+            String contentType = image.getContentType();
+            if (contentType == null || !allowedTypes.contains(contentType) || image.getSize() > 1024 * 1024) {
                 return ResponseEntity.badRequest().body(null);
             }
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
         CreatePropertyRequestDTO requestDTO;
-
         try {
             requestDTO = objectMapper.readValue(requestData, CreatePropertyRequestDTO.class);
         } catch (JsonProcessingException e) {
             return ResponseEntity.badRequest().body(null);
         }
 
-        // Set tenant ID automatically
         requestDTO.setTenantId(authenticatedUser.getId());
 
         PropertyResponseDTO savedProperty = propertyUsecase.createProperty(requestDTO, images);
         return ResponseEntity.ok(savedProperty);
     }
+
 
 
     @GetMapping
@@ -95,19 +94,14 @@ public class PropertyController {
 
     @GetMapping("/tenant")
     public ResponseEntity<List<PropertyResponseDTO>> getTenantProperties() {
-        // Extract user email from JWT claims
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("🔍 Principal: " + principal);
 
         if (!(principal instanceof org.springframework.security.oauth2.jwt.Jwt jwt)) {
-            System.out.println("❌ User not authenticated!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        String email = jwt.getClaim("sub"); // Extract email from JWT
-        System.out.println("✅ Authenticated User Email: " + email);
+        String email = jwt.getClaim("sub");
 
-        // Find authenticated user in the database
         User authenticatedUser = usersRepository.findByEmailContainsIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -116,7 +110,7 @@ public class PropertyController {
     }
 
 
-
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @PutMapping("/{id}")
     public ResponseEntity<PropertyResponseDTO> updateProperty(
             @PathVariable Long id,
@@ -125,7 +119,7 @@ public class PropertyController {
         PropertyResponseDTO updatedProperty = propertyUsecase.updateProperty(id, requestDTO);
         return ResponseEntity.ok(updatedProperty);
     }
-
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProperty(@PathVariable Long id) {
         propertyUsecase.deleteProperty(id);
@@ -179,13 +173,21 @@ public class PropertyController {
         propertyUsecase.deletePropertyImage(imageId);
         return ResponseEntity.noContent().build();
     }
-
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @PutMapping("/{id}/images")
     public ResponseEntity<PropertyResponseDTO> updatePropertyImages(
             @PathVariable Long id,
             @RequestPart List<MultipartFile> images) {
 
+        List<String> allowedTypes = List.of("image/jpeg", "image/png", "image/gif");
+
         for (MultipartFile image : images) {
+            String contentType = image.getContentType();
+
+            if (contentType == null || !allowedTypes.contains(contentType)) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
             if (image.getSize() > 1024 * 1024) {
                 return ResponseEntity.badRequest().body(null);
             }
@@ -194,4 +196,5 @@ public class PropertyController {
         PropertyResponseDTO updatedProperty = propertyUsecase.updatePropertyImages(id, images);
         return ResponseEntity.ok(updatedProperty);
     }
+
 }

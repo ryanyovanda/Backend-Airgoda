@@ -20,7 +20,7 @@ public class GetUserUseCaseImpl implements GetUsersUseCase {
   private final UsersRepository usersRepository;
 
   @PersistenceContext
-  private EntityManager entityManager; // ✅ Inject EntityManager to force refresh
+  private EntityManager entityManager;
 
   public GetUserUseCaseImpl(UsersRepository usersRepository) {
     this.usersRepository = usersRepository;
@@ -37,7 +37,7 @@ public class GetUserUseCaseImpl implements GetUsersUseCase {
     var foundUser = usersRepository.findById(id)
             .orElseThrow(() -> new DataNotFoundException("User not found"));
 
-    entityManager.refresh(foundUser); // ✅ Force fresh data from DB
+    entityManager.refresh(foundUser);
 
     return new UserDetailResponseDTO(
             foundUser.getId(),

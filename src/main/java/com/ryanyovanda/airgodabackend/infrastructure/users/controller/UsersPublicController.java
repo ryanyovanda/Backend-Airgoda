@@ -34,8 +34,6 @@ public class UsersPublicController {
   private final UpdateUserProfileUsecase updateUserProfileUsecase;
 
 
-
-  //  Simple RBAC where only logged-in admins are allowed to access get all users endpoint
   @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
   @GetMapping
   public ResponseEntity<?> getUsers() {
@@ -52,8 +50,8 @@ public class UsersPublicController {
 
   @PutMapping("/profile")
   public ResponseEntity<?> updateProfile(@RequestBody UpdateUserProfileRequestDTO request) {
-    String userEmail = Claims.getEmailFromJwt(); // Get email from JWT
-    request.setEmail(userEmail); // Ensure the request updates the logged-in user only
+    String userEmail = Claims.getEmailFromJwt();
+    request.setEmail(userEmail);
 
     User updatedUser = updateUserProfileUsecase.updateProfile(request);
     return Response.successfulResponse("Profile updated successfully", updatedUser);
@@ -71,7 +69,6 @@ public class UsersPublicController {
     return Response.successfulResponse("Create new user success", createUserUsecase.bulkCreateUser(req));
   }
 
-  // ✅ NEW: Email Verification Endpoint
   @GetMapping("/verify")
   public ResponseEntity<?> verifyEmail(@RequestParam String token) {
     verifyEmailUsecase.verifyUser(token);

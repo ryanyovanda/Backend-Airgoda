@@ -55,7 +55,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(requestDTO.getIsActive());
 
-        // ✅ Fetch and set tenant
         if (requestDTO.getTenantId() != null) {
             User tenant = usersRepository.findById(requestDTO.getTenantId())
                     .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
@@ -77,7 +76,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
         Property savedProperty = propertyRepository.save(property);
 
-        // Handle image uploads
         List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
         List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
             PropertyImage propertyImage = new PropertyImage();
@@ -119,7 +117,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
                     property.getLocation().getName(),
                     property.getLocation().getType().name()
             ));
-            dto.setImageUrls(property.getImages().stream().map(PropertyImage::getImageUrl).toList()); // Assuming images exist
+            dto.setImageUrls(property.getImages().stream().map(PropertyImage::getImageUrl).toList());
             dto.setFullAddress(property.getFullAddress());
 
             return dto;
@@ -134,10 +132,8 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException("Property not found"));
 
-        // Ensure transaction when deleting images
         propertyImageRepository.deleteByPropertyId(propertyId);
 
-        // Upload new images
         List<String> imageUrls = cloudinaryUsecase.uploadImages(images);
         List<PropertyImage> propertyImages = imageUrls.stream().map(url -> {
             PropertyImage propertyImage = new PropertyImage();
@@ -263,11 +259,10 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
         responseDTO.setRoomId(property.getRoomId());
         responseDTO.setIsActive(property.getIsActive());
 
-        // ✅ Null-safe handling for tenant
         if (property.getTenant() != null) {
             responseDTO.setTenantId(property.getTenant().getId());
         } else {
-            responseDTO.setTenantId(null);  // Avoid NullPointerException
+            responseDTO.setTenantId(null);
         }
 
         if (property.getCategory() != null) {
@@ -295,8 +290,8 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
                     .toList();
         }
 
-        responseDTO.setImageIds(imageIds); // ✅ Expecting List<Long>
-        responseDTO.setImageUrls(imageUrls); // ✅ Expecting List<String>
+        responseDTO.setImageIds(imageIds);
+        responseDTO.setImageUrls(imageUrls);
 
 
 

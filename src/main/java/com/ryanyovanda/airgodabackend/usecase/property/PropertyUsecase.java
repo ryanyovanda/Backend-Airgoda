@@ -19,7 +19,6 @@ public interface PropertyUsecase {
     void deletePropertyImage(Long imageId);
     PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images);
 
-    // Pagination & Filtering
     Page<PropertyResponseDTO> searchProperties(Long locationId, Long categoryId, String keyword, Pageable pageable);
 
     Page<PropertyResponseDTO> getProperties(Pageable pageable);

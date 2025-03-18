@@ -24,7 +24,7 @@ public class ResendVerificationEmailUsecaseImpl implements ResendVerificationEma
     @Override
     @Transactional
     public void resendVerificationEmail(String email) {
-        // ✅ Find user by email
+
         Optional<User> userOpt = usersRepository.findByEmailContainsIgnoreCase(email);
 
         if (userOpt.isEmpty()) {
@@ -33,25 +33,25 @@ public class ResendVerificationEmailUsecaseImpl implements ResendVerificationEma
 
         User user = userOpt.get();
 
-        // ✅ Check if user is already verified
+
         if (user.getIsVerified()) {
             throw new RuntimeException("User is already verified.");
         }
 
-        // ✅ Ensure the user hasn't exceeded the resend limit
+
         if (user.getVerificationToken() != null && user.getVerificationToken().split("-").length > MAX_RESEND_ATTEMPTS) {
             throw new RuntimeException("You have exceeded the maximum number of resends.");
         }
 
-        // ✅ Generate new token
+
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
         user.setTokenExpiry(OffsetDateTime.now().plusHours(1));
 
-        // ✅ Save new token
+
         usersRepository.save(user);
 
-        // ✅ Send new verification email
+
         sendVerificationEmailUsecase.sendVerificationEmail(user.getEmail(), token);
     }
 }

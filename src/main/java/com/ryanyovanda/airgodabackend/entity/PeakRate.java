@@ -44,14 +44,12 @@ public class PeakRate {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    // ✅ Set otomatis timestamps sebelum insert
     @PrePersist
     protected void onCreate() {
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
     }
 
-    // ✅ Update timestamps sebelum update
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = OffsetDateTime.now();

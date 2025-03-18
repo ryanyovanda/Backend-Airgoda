@@ -44,13 +44,13 @@ public class TokenRefreshUsecaseImpl implements TokenRefreshUsecase {
         UserDetails userDetails = userAuthDetailsUsecase.loadUserByUsername(email);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-        // Set authentication in SecurityContext
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String newAccessToken = tokenService.generateToken(authentication, TokenGenerationUsecase.TokenType.ACCESS);
         String newRefreshToken = tokenService.generateToken(authentication, TokenGenerationUsecase.TokenType.REFRESH);
 
-        // ✅ Fix: Format timestamp properly to ISO-8601 to prevent DateTimeParseException
+
         String formattedTimestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now().atOffset(ZoneOffset.UTC));
         tokenBlacklistUsecase.blacklistToken(refreshToken, formattedTimestamp);
 

@@ -43,12 +43,10 @@ public class OrderItem {
     @Column(name = "guest", nullable = false)
     private Integer guest;
 
-    // ✅ Ensure totalPrice is not null
     @NotNull
     @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
-    // ✅ Automatically set createdAt and updatedAt
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

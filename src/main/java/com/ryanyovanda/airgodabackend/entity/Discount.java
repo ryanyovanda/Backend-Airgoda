@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class Discount {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ✅ Auto-generate ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "discount_id")
     private Long id;
 
@@ -33,7 +33,7 @@ public class Discount {
 
     @NotNull
     @Column(name = "discount_type", nullable = false)
-    private String discountType; // "percentage" atau "fixed"
+    private String discountType;
 
     @NotNull
     @Column(name = "value", nullable = false, precision = 15, scale = 2)

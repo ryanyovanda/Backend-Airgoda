@@ -18,7 +18,7 @@ public class TokenGenerationUsecaseImpl implements TokenGenerationUsecase {
   private final JwtEncoder jwtEncoder;
   private final UsersRepository usersRepository;
   private final JwtDecoder jwtDecoder;
-  private final JwtUtil jwtUtil; // ✅ Inject JwtUtil for validation
+  private final JwtUtil jwtUtil;
 
   @Value("${jwt.access.expiry}")
   private long ACCESS_TOKEN_EXPIRY;
@@ -30,7 +30,7 @@ public class TokenGenerationUsecaseImpl implements TokenGenerationUsecase {
     this.jwtEncoder = jwtEncoder;
     this.usersRepository = usersRepository;
     this.jwtDecoder = jwtDecoder;
-    this.jwtUtil = jwtUtil; // ✅ Inject JwtUtil
+    this.jwtUtil = jwtUtil;
   }
 
   @Override
@@ -65,7 +65,7 @@ public class TokenGenerationUsecaseImpl implements TokenGenerationUsecase {
 
   @Override
   public String refreshAccessToken(String refreshToken) {
-    // ✅ Use JwtUtil to validate refresh token before generating a new one
+
     if (!jwtUtil.validateToken(refreshToken)) {
       throw new RuntimeException("Invalid refresh token");
     }

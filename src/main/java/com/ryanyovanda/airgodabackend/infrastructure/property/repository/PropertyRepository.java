@@ -14,11 +14,9 @@ import java.util.Optional;
 @Repository
 public interface PropertyRepository extends JpaRepository<Property, Long> {
 
-    // Existing methods
+
     List<Property> findByIsActiveTrue();
 
-//    @Query("SELECT p FROM Property p WHERE p.tenant.id = :tenantId")
-//    List<Property> findByOwnerId(@Param("tenantId") Long tenantId);
 
     @Query("SELECT p FROM Property p LEFT JOIN FETCH p.category WHERE p.tenant.id = :tenantId")
     List<Property> findByOwnerId(@Param("tenantId") Long tenantId);
@@ -43,11 +41,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             @Param("keyword") String keyword,
             Pageable pageable);
 
-//    @Query("SELECT p FROM Property p ORDER BY p.price ASC")
-//
-//    Page<Property> findAllSortedByCheapestPrice(Pageable pageable);
-
-    // Sorting by cheapest available room price
     @Query("""
         SELECT p FROM Property p
         JOIN RoomVariant rv ON rv.property.id = p.id
@@ -57,7 +50,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     """)
     Page<Property> findAllSortedByCheapestPrice(Pageable pageable);
 
-    // Filtering by location and sorting by cheapest price
     @Query("""
         SELECT p FROM Property p
         JOIN RoomVariant rv ON rv.property.id = p.id
@@ -67,7 +59,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     """)
     Page<Property> findByLocationSortedByCheapestPrice(@Param("locationId") Long locationId, Pageable pageable);
 
-    // Filtering by category and sorting by cheapest price
     @Query("""
         SELECT p FROM Property p
         JOIN RoomVariant rv ON rv.property.id = p.id
@@ -77,7 +68,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     """)
     Page<Property> findByCategorySortedByCheapestPrice(@Param("categoryId") Long categoryId, Pageable pageable);
 
-    // Filtering by location & category, sorted by cheapest price
     @Query("""
         SELECT p FROM Property p
         JOIN RoomVariant rv ON rv.property.id = p.id

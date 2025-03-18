@@ -15,7 +15,7 @@ public class PropertyResponseDTO {
     private String roomId;
     private Boolean isActive;
     private OffsetDateTime createdAt;
-    private Long categoryId; // New field for category name
+    private Long categoryId;
     private LocationDTO location;
     private List<Long> imageIds;
     private List<String> imageUrls;

@@ -8,6 +8,7 @@ import com.ryanyovanda.airgodabackend.infrastructure.order.repository.PeakRateRe
 import com.ryanyovanda.airgodabackend.infrastructure.property.repository.RoomVariantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,50 +29,49 @@ public class PeakRateController {
     @Autowired
     private RoomVariantRepository roomVariantRepository;
 
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
     @PostMapping
     @Transactional
     public ResponseEntity<?> addPeakRate(@RequestBody PeakRateRequestDTO peakRateRequest) {
         try {
             logger.info("🔍 Received Peak Rate Request: " + peakRateRequest);
 
-            // ✅ Extract `roomVariantId` from DTO
             Long roomVariantId = peakRateRequest.getRoomVariantId();
 
             if (roomVariantId == null) {
-                logger.warning("❌ Error: `roomVariantId` is missing.");
+                logger.warning(" Error: `roomVariantId` is missing.");
                 return ResponseEntity.badRequest().body("Error: `roomVariantId` is required.");
             }
 
-            // ✅ Fetch Room Variant from Database
             Optional<RoomVariant> roomVariantOpt = roomVariantRepository.findById(roomVariantId);
             if (roomVariantOpt.isEmpty()) {
-                logger.warning("❌ Error: Room Variant ID " + roomVariantId + " not found.");
+                logger.warning(" Error: Room Variant ID " + roomVariantId + " not found.");
                 return ResponseEntity.badRequest().body("Error: Room Variant with ID " + roomVariantId + " not found.");
             }
 
-            // ✅ Create Peak Rate Object
+
             PeakRate peakRate = new PeakRate();
             peakRate.setRoomVariant(roomVariantOpt.get());
             peakRate.setStartDate(peakRateRequest.getStartDate());
             peakRate.setEndDate(peakRateRequest.getEndDate());
             peakRate.setAdditionalPrice(peakRateRequest.getAdditionalPrice());
 
-            // ✅ Check for existing peak rate within the same date range
+
             boolean exists = peakRateRepository.existsByRoomVariantIdAndDateRange(
                     roomVariantId, peakRateRequest.getStartDate(), peakRateRequest.getEndDate());
 
             if (exists) {
-                logger.warning("⚠️ Peak Rate already exists for Room Variant ID: " + roomVariantId);
+                logger.warning("️ Peak Rate already exists for Room Variant ID: " + roomVariantId);
                 return ResponseEntity.badRequest().body("Peak Rate already exists for the given date range.");
             }
 
-            // ✅ Save to Database
+
             PeakRate savedPeakRate = peakRateRepository.save(peakRate);
-            logger.info("✅ Peak Rate saved successfully: " + savedPeakRate);
+            logger.info(" Peak Rate saved successfully: " + savedPeakRate);
 
             return ResponseEntity.ok("Peak Rate added successfully.");
         } catch (Exception e) {
-            logger.severe("❌ Failed to add Peak Rate: " + e.getMessage());
+            logger.severe(" Failed to add Peak Rate: " + e.getMessage());
             return ResponseEntity.internalServerError().body("Failed to add Peak Rate: " + e.getMessage());
         }
     }

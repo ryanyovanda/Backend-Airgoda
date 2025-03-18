@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -69,19 +70,16 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
-            .csrf(AbstractHttpConfigurer::disable) // ❌ Disable CSRF (unless needed)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Apply CORS here
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/error/**").permitAll()
                     .requestMatchers("/api/v1/auth/login").permitAll()
-                            .requestMatchers("/api/v1/auth/logout").permitAll()
+                    .requestMatchers("/api/v1/auth/logout").permitAll()
                     .requestMatchers("/api/v1/auth/google-login").permitAll()
                     .requestMatchers("/api/v1/users/register").permitAll()
-                    .requestMatchers("/api/properties/**").permitAll()
                     .requestMatchers("/api/room-variants/**").permitAll()
                     .requestMatchers("/orders/**").permitAll()
-                    .requestMatchers("/peak-rates").permitAll()
-                    .requestMatchers("/discounts").permitAll()
                     .requestMatchers("/api/v1/auth/refresh").permitAll()
                     .requestMatchers("/api/v1/auth/session").permitAll()
                     .requestMatchers("/api/v1/auth/forgot-password").permitAll()
@@ -90,9 +88,12 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/auth/change-password").permitAll()
                     .requestMatchers("/api/v1/users/resend-verification").permitAll()
                     .requestMatchers("/api/v1/users/**").permitAll()
-                    .requestMatchers("/categories").permitAll()
-                    .requestMatchers("/api/locations").permitAll()
-//                    .anyRequest().authenticated()
+                    .requestMatchers(HttpMethod.GET,"/discounts").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/peak-rates").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/categories").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/api/locations").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/api/properties/**").permitAll()
+                    .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .oauth2ResourceServer(oauth2 -> {
@@ -124,7 +125,6 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
 
-    // ✅ Allow frontend URL from .env + localhost
     config.setAllowedOrigins(List.of(
             frontendUrl,
             "http://localhost:3001",
@@ -133,19 +133,14 @@ public class SecurityConfig {
             "http://host.docker.internal:3000"
     ));
 
-    // ✅ Allow standard HTTP methods
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-    // ✅ Allow standard headers
     config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
 
-    // ✅ Allow cookies/auth headers
     config.setAllowCredentials(true);
 
-    // ✅ Expose important headers
     config.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin"));
 
-    // ✅ Apply CORS to all API routes
     source.registerCorsConfiguration("/**", config);
 
     return source;

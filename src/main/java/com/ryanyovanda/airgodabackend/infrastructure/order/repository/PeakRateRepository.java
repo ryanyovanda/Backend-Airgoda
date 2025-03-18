@@ -19,7 +19,6 @@ public interface PeakRateRepository extends JpaRepository<PeakRate, Long> {
                                @Param("endDate") LocalDate endDate);
 
 
-    // ✅ Check if a peak rate already exists for the given date range
     @Query("SELECT COUNT(p) > 0 FROM PeakRate p " +
             "WHERE p.roomVariant.id = :roomVariantId " +
             "AND p.startDate <= :endDate " +

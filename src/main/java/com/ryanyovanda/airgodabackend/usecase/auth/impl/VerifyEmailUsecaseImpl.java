@@ -21,7 +21,7 @@ public class VerifyEmailUsecaseImpl implements VerifyEmailUsecase {
 
     @Override
     @Transactional
-    public void verifyUser(String token) {  // ❌ No @CacheEvict
+    public void verifyUser(String token) {
         Optional<User> userOpt = usersRepository.findByVerificationToken(token);
 
         if (userOpt.isEmpty()) {

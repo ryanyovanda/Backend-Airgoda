@@ -38,9 +38,7 @@ public class JwtUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            System.out.println("JWT expired: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("JWT validation failed: " + e.getMessage());
         }
         return false;
     }

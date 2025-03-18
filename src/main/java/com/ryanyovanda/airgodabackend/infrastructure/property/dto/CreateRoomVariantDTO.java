@@ -19,10 +19,10 @@ public class CreateRoomVariantDTO {
     private BigDecimal price;
 
     @NotNull(message = "Max guest is required")
-    private Integer maxGuest; // Added to specify max guests per room
+    private Integer maxGuest;
 
     @NotNull(message = "Capacity is required")
-    private Integer capacity; // Specifies how many rooms of this type exist
+    private Integer capacity;
 
     private List<String> facilities;
 

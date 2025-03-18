@@ -8,7 +8,7 @@ import lombok.Setter;
 public class LocationDTO {
     private Long id;
     private String name;
-    private String type; // CITY, REGENCY, etc.
+    private String type;
 
     public LocationDTO(Long id, String name, String type) {
         this.id = id;

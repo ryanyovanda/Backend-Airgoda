@@ -70,22 +70,22 @@ public class AuthController {
     public ResponseEntity<?> refreshAccessToken(@RequestBody RefreshTokenRequestDTO request) {
         String refreshToken = request.getRefreshToken();
 
-        // ✅ Validate the refresh token
+
         if (!jwtUtil.validateToken(refreshToken)) {
             return Response.failedResponse(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired refresh token");
         }
 
-        // ✅ Extract email from refresh token
+
         String email = jwtUtil.getEmailFromToken(refreshToken);
 
-        // ✅ Load user details and manually authenticate the refresh token
+
         UserDetails userDetails = userAuthDetailsUsecase.loadUserByUsername(email);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // ✅ Call the use case to generate new tokens
+
         TokenPairResponseDTO newTokens = tokenRefreshUsecase.refreshAccessToken(refreshToken);
 
         return Response.successfulResponse("Refresh successful", newTokens);

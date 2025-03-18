@@ -33,11 +33,11 @@ public class Property {
 
     @Size(max = 100)
     @Column(name = "room_id", length = 100)
-    private String roomId;  // Ensure this is not a foreign key reference
+    private String roomId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
-    private User tenant;  // Ensure `User` entity exists
+    private User tenant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -52,7 +52,7 @@ public class Property {
 
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PropertyImage> images = new ArrayList<>(); // ✅ Initialize list to avoid null errors
+    private List<PropertyImage> images = new ArrayList<>();
 
     @Column(name = "is_active")
     private Boolean isActive;
@@ -68,7 +68,7 @@ public class Property {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    // **Fix: Use @PrePersist to set default values**
+
     @PrePersist
     public void prePersist() {
         if (isActive == null) isActive = true;
@@ -77,7 +77,7 @@ public class Property {
         updatedAt = OffsetDateTime.now();
     }
 
-    // **Fix: Use @PreUpdate to update timestamps**
+
     @PreUpdate
     public void preUpdate() {
         updatedAt = OffsetDateTime.now();

@@ -7,10 +7,10 @@ import com.ryanyovanda.airgodabackend.infrastructure.property.dto.GetRoomVariant
 import java.util.List;
 
 public interface RoomVariantUsecase {
-    GetRoomVariantDTO createRoomVariant(CreateRoomVariantDTO roomVariantDTO); // Tambah room variant baru
-    GetRoomVariantDTO getRoomVariantById(Long id); // Ambil room variant berdasarkan ID
-    List<GetRoomVariantDTO> getAllRoomVariants(); // Ambil semua room variant
-    List<GetRoomVariantDTO> getRoomVariantsByPropertyId(Long propertyId); // Ambil room variant berdasarkan property
-    GetRoomVariantDTO updateRoomVariant(Long id, UpdateRoomVariantDTO roomVariantDTO); // Update room variant
-    void deleteRoomVariant(Long id); // Hapus room variant
+    GetRoomVariantDTO createRoomVariant(CreateRoomVariantDTO roomVariantDTO);
+    GetRoomVariantDTO getRoomVariantById(Long id);
+    List<GetRoomVariantDTO> getAllRoomVariants();
+    List<GetRoomVariantDTO> getRoomVariantsByPropertyId(Long propertyId);
+    GetRoomVariantDTO updateRoomVariant(Long id, UpdateRoomVariantDTO roomVariantDTO);
+    void deleteRoomVariant(Long id);
 }

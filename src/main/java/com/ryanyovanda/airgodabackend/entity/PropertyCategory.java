@@ -21,7 +21,7 @@ public class PropertyCategory {
     @SequenceGenerator(
             name = "property_category_id_gen",
             sequenceName = "property_categories_id_gen",
-            allocationSize = 1 // Make sure this matches the database sequence increment size
+            allocationSize = 1
     )
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "property_category_id_gen")
     @Column(name = "category_id", nullable = false)
