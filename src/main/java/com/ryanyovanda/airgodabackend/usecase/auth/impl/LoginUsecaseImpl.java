@@ -90,6 +90,7 @@ public class LoginUsecaseImpl implements LoginUsecase {
       if (defaultRole.isEmpty()) {
         throw new RuntimeException("Default role not found");
       }
+      user.setIsVerified(true);
       user.getRoles().add(defaultRole.get());
       usersRepository.save(user);
     }
