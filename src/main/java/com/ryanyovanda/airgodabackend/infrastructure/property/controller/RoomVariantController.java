@@ -1,5 +1,6 @@
 package com.ryanyovanda.airgodabackend.infrastructure.property.controller;
 
+import com.ryanyovanda.airgodabackend.infrastructure.auth.Claims;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.CreateRoomVariantDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.UpdateRoomVariantDTO;
 import com.ryanyovanda.airgodabackend.infrastructure.property.dto.GetRoomVariantDTO;
@@ -19,7 +20,9 @@ public class RoomVariantController {
 
     @PostMapping
     public ResponseEntity<GetRoomVariantDTO> createRoomVariant(@RequestBody CreateRoomVariantDTO dto) {
-        return ResponseEntity.ok(roomVariantUsecase.createRoomVariant(dto));
+        Long tenantId = Claims.getUserIdFromJwt();
+        GetRoomVariantDTO result = roomVariantUsecase.createRoomVariant(dto, tenantId);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
@@ -39,12 +42,15 @@ public class RoomVariantController {
 
     @PutMapping("/{id}")
     public ResponseEntity<GetRoomVariantDTO> updateRoomVariant(@PathVariable Long id, @RequestBody UpdateRoomVariantDTO dto) {
-        return ResponseEntity.ok(roomVariantUsecase.updateRoomVariant(id, dto));
+        Long tenantId = Claims.getUserIdFromJwt();
+        GetRoomVariantDTO result = roomVariantUsecase.updateRoomVariant(id, dto, tenantId);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoomVariant(@PathVariable Long id) {
-        roomVariantUsecase.deleteRoomVariant(id);
+        Long tenantId = Claims.getUserIdFromJwt();
+        roomVariantUsecase.deleteRoomVariant(id, tenantId);
         return ResponseEntity.noContent().build();
     }
 }
