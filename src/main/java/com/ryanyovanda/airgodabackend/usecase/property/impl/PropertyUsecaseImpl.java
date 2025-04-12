@@ -159,6 +159,7 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
+        property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(requestDTO.getIsActive());
 
@@ -184,11 +185,6 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
 
         User propertyTenant = property.getTenant();
         Long dbTenantId = propertyTenant != null ? propertyTenant.getId() : null;
-
-        System.out.println("🧠 DB Tenant ID: " + dbTenantId + " (" + (dbTenantId != null ? dbTenantId.getClass().getSimpleName() : "null") + ")");
-        System.out.println("🪪 JWT Tenant ID: " + tenantId + " (" + (tenantId != null ? tenantId.getClass().getSimpleName() : "null") + ")");
-
-
         if (dbTenantId == null || !dbTenantId.equals(tenantId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this property.");
         }

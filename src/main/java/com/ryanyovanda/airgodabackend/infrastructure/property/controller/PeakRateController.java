@@ -94,4 +94,21 @@ public class PeakRateController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAuthority('SCOPE_TENANT')")
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deletePeakRate(@PathVariable Long id) {
+        try {
+            Optional<PeakRate> peakRateOpt = peakRateRepository.findById(id);
+
+            if (peakRateOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("Peak Rate not found with ID: " + id);
+            }
+
+            peakRateRepository.deleteById(id);
+            return ResponseEntity.ok("Peak Rate deleted successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to delete Peak Rate: " + e.getMessage());
+        }
+    }
 }
