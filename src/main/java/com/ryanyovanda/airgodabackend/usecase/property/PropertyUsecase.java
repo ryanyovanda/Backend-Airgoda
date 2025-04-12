@@ -11,11 +11,11 @@ import java.util.Optional;
 
 public interface PropertyUsecase {
     List<PropertyResponseDTO> getPropertiesByTenant(Long tenantId);
-    PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images);
+    PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images, Long tenantId);
     List<PropertyResponseDTO> getAllProperties();
     Optional<PropertyResponseDTO> getPropertyById(Long id);
-    PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO);
-    void deleteProperty(Long id);
+    PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO, Long tenantId);
+    void deleteProperty(Long propertyId, Long tenantId);
     void deletePropertyImage(Long imageId);
     PropertyResponseDTO updatePropertyImages(Long propertyId, List<MultipartFile> images);
 

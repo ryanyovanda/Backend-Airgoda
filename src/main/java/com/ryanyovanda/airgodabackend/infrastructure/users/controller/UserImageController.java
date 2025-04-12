@@ -21,8 +21,7 @@ public class UserImageController {
         this.usersRepository = usersRepository;
     }
 
-
-
+    
     private boolean isAuthorized(Long userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

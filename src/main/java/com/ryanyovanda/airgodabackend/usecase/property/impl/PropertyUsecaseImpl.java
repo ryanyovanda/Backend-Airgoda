@@ -12,9 +12,12 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,22 +50,17 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
-    public PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images) {
+    public PropertyResponseDTO createProperty(CreatePropertyRequestDTO requestDTO, List<MultipartFile> images, Long tenantId) {
+        User tenant = usersRepository.findById(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
+
         Property property = new Property();
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
         property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(requestDTO.getIsActive());
-
-        if (requestDTO.getTenantId() != null) {
-            User tenant = usersRepository.findById(requestDTO.getTenantId())
-                    .orElseThrow(() -> new IllegalArgumentException("Tenant not found"));
-            property.setTenant(tenant);
-        } else {
-            throw new IllegalArgumentException("Tenant must be specified");
-        }
-
+        property.setTenant(tenant);
         if (requestDTO.getCategoryId() != null) {
             PropertyCategory category = propertyCategoryRepository.findById(requestDTO.getCategoryId())
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
@@ -149,12 +147,19 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
-    public PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO) {
+    public PropertyResponseDTO updateProperty(Long id, CreatePropertyRequestDTO requestDTO, Long tenantId) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Property not found"));
+        User propertyTenant = property.getTenant();
+        Long dbTenantId = propertyTenant != null ? propertyTenant.getId() : null;
+        if (dbTenantId == null || !dbTenantId.equals(Long.valueOf(tenantId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to modify this property.");
+        }
+
 
         property.setName(requestDTO.getName());
         property.setDescription(requestDTO.getDescription());
+        property.setFullAddress(requestDTO.getFullAddress());
         property.setRoomId(requestDTO.getRoomId());
         property.setIsActive(requestDTO.getIsActive());
 
@@ -174,11 +179,17 @@ public class PropertyUsecaseImpl implements PropertyUsecase {
     }
 
     @Override
-    public void deleteProperty(Long id) {
-        if (!propertyRepository.existsById(id)) {
-            throw new IllegalArgumentException("Property not found");
+    public void deleteProperty(Long propertyId, Long tenantId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new IllegalArgumentException("Property not found"));
+
+        User propertyTenant = property.getTenant();
+        Long dbTenantId = propertyTenant != null ? propertyTenant.getId() : null;
+        if (dbTenantId == null || !dbTenantId.equals(tenantId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this property.");
         }
-        propertyRepository.deleteById(id);
+
+        propertyRepository.deleteById(propertyId);
     }
 
     @Override
